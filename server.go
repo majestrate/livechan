@@ -6,6 +6,10 @@ import (
   "time"
   "log"
   "fmt"
+  "bufio"
+  "io"
+  "os"
+  "strings"
 )
 
 const (
@@ -152,19 +156,120 @@ func htmlServer(w http.ResponseWriter, req *http.Request) {
     http.Error(w, "Method not allowed", 405)
     return
   }
+  serve_file(w, req, "index.html")
+} 
+
+func serve_file(w http.ResponseWriter, req *http.Request, filename string) {
   w.Header().Set("Content-Type", "text/html; charset=utf-8")
-  http.ServeFile(w, req, "index.html")
+  http.ServeFile(w, req, filename)
 }
 
 func staticServer(w http.ResponseWriter, req *http.Request) {
     http.ServeFile(w, req, req.URL.Path[1:])
 }
 
+/**
+check for session cookie
+*/
+func checkForSessionCookie(req * http.Request) bool {
+  // assume it is there
+  return true
+  //FIXME it's not there
+}
+
+
+/**
+ *
+ * handle file upload
+ * rolling my own? why not! what is the worst that will go wrong?!
+ */
+func handleUpload(w http.ResponseWriter, req * http.Request) {
+  // tell snoopers to fux off
+  if req.Method == "GET" {
+    serve_file(w, req, "postform.html")
+    return
+  }
+  // we got a post request
+  if req.Method == "POST" {
+    // get file upload
+    upfile, upheader, err := req.FormFile("file-upload")
+    
+    if err != nil {
+      // we have no file
+      log.Printf("Upload Error %s\n", err)
+      w.WriteHeader(403)
+      return
+    }
+    // we have ensured we have the file now
+    fname := upheader.Filename
+    // process upload
+    doHandleUpload(fname, upfile, w, req)
+  }
+}
+
+/*
+generate uploaded file filename
+*/
+func genUploadFilename(filename string) string {
+  // FIXME invalid filenames without extension
+  // get time
+  timeNow := time.Now()
+  // get extension
+  idx := strings.LastIndex(filename, ".")
+  // concat time and file extension
+  fileExt := filename[idx+1:]
+  return fmt.Sprintf("%d.%s", timeNow.UnixNano(), fileExt)
+}
+
+/*
+ check if a filename is valid
+ now only checks extensions
+*/
+func checkUploadFilenameValid(filename string) bool {
+  return ! strings.Contains(filename, "..") &&
+    ! strings.Contains(filename, "/") &&
+    strings.HasSuffix(filename, ".jpeg") ||
+    strings.HasSuffix(filename, ".jpg") ||
+    strings.HasSuffix(filename, ".gif") ||
+    strings.HasSuffix(filename, ".png") // add more?
+}
+
+/*
+handle actual file upload
+
+*/
+func doHandleUpload(filename string, f io.Reader, w http.ResponseWriter, req * http.Request) {
+  // get filename
+  outFile := genUploadFilename(filename)
+  osFile := fmt.Sprintf("upload/%s", outFile)
+  log.Printf("upload to: %s\n", osFile)
+  // open reader for reading file
+  r := bufio.NewReader(f)
+  // open file from disk
+  file , err := os.Create(osFile)
+  if err != nil {
+    log.Printf("cannot open outfile %s: %s\n", outFile, err)
+    w.WriteHeader(500)
+    return
+  }
+  // open writer for writing to disk
+  outWrite := bufio.NewWriter(file)
+  // write to disk
+  r.WriteTo(outWrite)
+  file.Close()
+  // tell the world we're gud
+  w.WriteHeader(200)
+  // spit out uploaded file name
+  w.Write([]byte(outFile))
+}
+
+
 func main() {
   go h.run()
   http.HandleFunc("/", htmlServer)
   http.HandleFunc("/ws/", wsServer)
   http.HandleFunc("/static/", staticServer)
+  http.HandleFunc("/post/", handleUpload)
   err := http.ListenAndServe(":8080", nil)
   if err != nil {
     log.Fatal("ListenAndServ: ", err)

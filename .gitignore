@@ -1,2 +1,5 @@
 server
 *.swp
+upload/*
+# emacs files
+*~
