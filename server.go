@@ -196,8 +196,8 @@ func handleUpload(w http.ResponseWriter, req * http.Request) {
     
     if err != nil {
       // we have no file
-      log.Printf("Upload Error %s\n", err)
       w.WriteHeader(403)
+			w.Write([]byte(fmt.Sprintf("Upload Error %s\n", err)))
       return
     }
     // we have ensured we have the file now
@@ -240,6 +240,12 @@ handle actual file upload
 */
 func doHandleUpload(filename string, f io.Reader, w http.ResponseWriter, req * http.Request) {
   // get filename
+	if ! checkUploadFilenameValid(filename) {
+		log.Printf("Invalid upload filename: %s\n")
+		w.WriteHeader(405)
+		w.Write([]byte("invalid filename"))
+		return
+	}
   outFile := genUploadFilename(filename)
   osFile := fmt.Sprintf("upload/%s", outFile)
   log.Printf("upload to: %s\n", osFile)
