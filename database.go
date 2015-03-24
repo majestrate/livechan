@@ -20,7 +20,7 @@ func (s *Database) deleteChatForIP(ipaddr string) {
     log.Println("Error: could not access DB.", err)
     return
   }
-  stmt, err := s.db.Prepare("SELECT file_path FROM Chats WHERE ip = ?")
+  stmt, err := s.db.Prepare("SELECT file_path FROM Chats WHERE ip = '?'")
   rows, err := stmt.Query(&ipaddr)
   defer rows.Close()
   for rows.Next() {
@@ -29,7 +29,7 @@ func (s *Database) deleteChatForIP(ipaddr string) {
     chat.DeleteFile();
   }
   defer stmt.Close()
-  stmt, err = tx.Prepare("DELETE FROM Chats WHERE ip = ?")
+  stmt, err = tx.Prepare("DELETE FROM Chats WHERE ip = '?'")
   defer stmt.Close()
   if err != nil {
     log.Println("Error: could not access DB.", err)
@@ -39,6 +39,24 @@ func (s *Database) deleteChatForIP(ipaddr string) {
   tx.Commit()
 }
 
+func (s *Database) getGlobalModUser(username, password string) *User {
+  
+  var salt, passwordHash string
+  var user *User
+  stmt, err := s.db.Prepare("SELECT salt, password FROM Users WHERE name = '?'")
+  defer stmt.Close()
+  if err != nil {
+    log.Println("Error cannot access DB.", err)
+    return nil
+  }
+  
+  stmt.QueryRow(&username).Scan(&salt, &passwordHash)
+  if hashPassword(password, salt) == passwordHash {
+    user = new(User)
+    // todo: fill out fields
+  }
+  return user
+}
 
 func (s *Database) insertChannel(channelName string) {
   tx, err := s.db.Begin()
@@ -115,7 +133,7 @@ func (s *Database) insertChat(channelName string, chat Chat) {
 }
 
 func (s *Database) getChatConvoId(channelId int, convoName string)int {
-  stmt, err := s.db.Prepare("SELECT id FROM Convos WHERE name = ? AND channel = ?")
+  stmt, err := s.db.Prepare("SELECT id FROM Convos WHERE name = '?' AND channel = '?'")
   if err != nil {
     log.Println("Error: could not access DB.", err);
     return 0
@@ -151,7 +169,7 @@ func (s *Database) getCount(channelName string) uint64{
   SELECT MAX(count)
   FROM chats
   WHERE channel = (
-    SELECT id FROM channels WHERE name = ?
+    SELECT id FROM channels WHERE name = '?'
   )
   `)
   if err != nil {
@@ -280,6 +298,29 @@ func (s *Database) getPermissions(channelName string, userName string) uint64 {
   return 0
 }
 
+func (s* Database) isGlobalBanned(ipAddr string) bool {
+  stmt, err := s.db.Prepare(`
+  SELECT COUNT(*) FROM GlobalBans
+  WHERE ip = ?"
+  `)
+  if err != nil {
+    log.Println("Error: could not access DB.", err);
+    return false
+  }
+  defer stmt.Close()
+  var isbanned int
+  err = stmt.QueryRow(ipAddr).Scan(&isbanned)
+  if err != nil {
+    log.Println("failed to query database for ban", err)
+    return false
+  }
+  if (isbanned > 0) {
+    return true
+  } else {
+    return false;
+  }
+}
+
 func (s *Database) isBanned(channelName string, ipAddr string) bool {
   stmt, err := s.db.Prepare(`
   SELECT COUNT(*) FROM Bans
@@ -303,15 +344,16 @@ func (s *Database) isBanned(channelName string, ipAddr string) bool {
   }
 }
 
-func (s *Database) getBan(channelName string, ipAddr string) Ban {
-  var ban Ban
+
+func (s *Database) getBan(channelName string, ipAddr string) *Ban {
+  ban := new(Ban)
   stmt, err := s.db.Prepare(`
   SELECT offense, date, expiration, ip FROM Bans
   WHERE ip = ? AND channel = (SELECT id FROM channels WHERE name = ?)
   `)
   if err != nil {
     log.Println("Error: could not access DB.", err)
-    return ban
+    return nil
   }
   defer stmt.Close()
   var unixTime int64
@@ -321,7 +363,7 @@ func (s *Database) getBan(channelName string, ipAddr string) Ban {
   ban.Expiration = time.Unix(0, unixTimeExpiration)
   if err != nil {
     //log.Println("error getting ban", err)
-    return ban
+    return nil
   }
   return ban
 }
@@ -402,6 +444,16 @@ func initDB() *sql.DB{
     log.Println("Unable to create Users.", err);
   }
 
+  createGlobalBans := `CREATE TABLE IF NOT EXISTS GlobalBans(
+    ip VARCHAR(255)
+    offense TEXT,
+    date INTEGER,
+    expiration INTEGER
+  )`
+  _, err = db.Exec(createGlobalBans)
+  if err != nil {
+    log.Println("Unable to create GlobalBans.", err);
+  }
   createBans := `CREATE TABLE IF NOT EXISTS Bans(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     ip VARCHAR(255),

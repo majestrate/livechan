@@ -30,8 +30,8 @@ function buildChat(domElem, channel) {
   var file = document.createElement('input');
   file.className = 'livechan_chat_input_file';
   file.setAttribute('type', 'file');
-    file.setAttribute('value', 'upload');
-    file.setAttribute('id', channel+'_input_file');
+  file.setAttribute('value', 'upload');
+  file.setAttribute('id', channel+'_input_file');
  
     
   var messageDiv = document.createElement('div');
@@ -106,7 +106,9 @@ function initWebSocket(channel, connection) {
   var ws = null;
   if (window['WebSocket']) {
     try {
-      ws = new WebSocket('ws://'+location.host+':18080/ws/'+channel);
+      var ws_url = 'ws://'+location.hostname+':18080/ws/'+channel;
+      console.log(ws_url);
+      ws = new WebSocket(ws_url);
     } catch(e) {
       ws = null;
     }
@@ -254,6 +256,7 @@ Chat.prototype.onNotifyShow = function () {
 
 }
 
+
 Chat.prototype.readImage = function (elem, callback) {
   var self = this;
 
@@ -263,10 +266,10 @@ Chat.prototype.readImage = function (elem, callback) {
     var filename = file.name;
     var reader = new FileReader();
     reader.onloadend = function (ev) {
-    if ( ev.target.readyState == FileReader.DONE) {
-      callback(window.btoa(ev.target.result), filename);
-    }
-  };
+      if ( ev.target.readyState == FileReader.DONE) {
+        callback(window.btoa(ev.target.result), filename);
+      }
+    };
     reader.readAsBinaryString(file);
   } else {
     callback(null, null);
@@ -346,6 +349,12 @@ Chat.prototype.notify = function(message) {
     new Notify("livechan", { body: message , notifyShow: function() {}}).show();
 }
 
+Chat.prototype.error = function(message) {
+  var self = this;
+  console.log("error: "+message);
+  self.notify("an error has occured: "+message);
+}
+
 /* @brief Binds messages to be displayed to the output.
  */
 Chat.prototype.initOutput = function() {
@@ -355,20 +364,28 @@ Chat.prototype.initOutput = function() {
   connection.onmessage(function(data) {
     if( Object.prototype.toString.call(data) === '[object Array]' ) {
       for (var i = 0; i < data.length; i++) {
-        if ( data[i].UserCount ) {
-          self.updateUseCount(data[i].UserCount);
+        if ( data[i].Error ) {
+          self.error(data[i].Error);
         } else {
-          var c = self.generateChat(data[i]);
-          self.insertChat(c, data[i].Count);
+          if ( data[i].UserCount ) {
+            self.updateUseCount(data[i].UserCount);
+          } else {
+            var c = self.generateChat(data[i]);
+            self.insertChat(c, data[i].Count);
+          }
         }
       }
     } else {
-      // user join / part
-      if ( data.UserCount > 0 ) {
-        self.updateUserCount(data.UserCount);
+      if ( data.Error ) {
+          self.notify(data.Error);
       } else {
-        var c = self.generateChat(data);
-        self.insertChat(c, data.Count);
+        // user join / part
+        if ( data.UserCount > 0 ) {
+          self.updateUserCount(data.UserCount);
+        } else {
+          var c = self.generateChat(data);
+          self.insertChat(c, data.Count);
+        }
       }
     }
   });
@@ -376,9 +393,12 @@ Chat.prototype.initOutput = function() {
   connection.ws = null;
   var getConnection = setInterval(function() {
     console.log("Attempting to reconnect.");
+    self.notify("disconnected");
+        
     if (initWebSocket(connection.channel, connection) !== null
         && connection.ws !== null) {
         console.log("Success!");
+        self.notify("connected to livechan");
         clearInterval(getConnection);
       }
     }, 1000);
@@ -408,7 +428,7 @@ Chat.prototype.scroll = function() {
  */
 Chat.prototype.insertChat = function(chat, number) {
   if (!number) {
-    console.log("Error: invalid chat number.");
+    this.error("Error: invalid chat number.");
   }
   var outputElem = this.chatElems.output;
   var doScroll = Math.abs(outputElem.scrollTop

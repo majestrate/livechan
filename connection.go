@@ -2,6 +2,7 @@ package main
 
 import (
   "github.com/gorilla/websocket"
+  "strings"
   "time"
 )
 
@@ -22,13 +23,15 @@ type Connection struct {
   user *User // user info
 }
 
+func (c *Connection) Close() {
+  h.unregister <- c
+  c.ws.Close()
+}
+
 /* @brief Read until there is an error. */
 func (c *Connection) reader() {
   /* Clean up once this function exits (can't read). */
-  defer func() {
-    h.unregister <- c
-    c.ws.Close()
-  }()
+  defer c.Close()
   c.ws.SetReadLimit(maxMessageSize)
   c.ws.SetReadDeadline(time.Now().Add(pongWait))
   c.ws.SetPongHandler(func(string) error {
@@ -42,8 +45,14 @@ func (c *Connection) reader() {
     } else {
       //log.Println("got message", mtype);
     }
-    m := Message{data:d, conn:c}
-    h.broadcast <- m
+    if c.user == nil {
+      var chat OutChat
+      chat.Error = "Please fill in the captcha"
+      c.send <- chat.createJSON()
+    } else {
+      m := Message{data:d, conn:c}
+      h.broadcast <- m
+    }
   }
 }
 
@@ -60,10 +69,7 @@ func (c *Connection) write(mt int, payload []byte) error {
 /* @brief Write a message if there is one, otherwise ping the client. */
 func (c *Connection) writer() {
   ticker := time.NewTicker(pingPeriod)
-  defer func() {
-    ticker.Stop()
-    c.ws.Close()
-  }()
+  defer c.Close()
   for {
     select {
     case Message, ok := <-c.send:
@@ -80,4 +86,16 @@ func (c *Connection) writer() {
       }
     }
   }
+}
+
+
+// try mod login for user given data from websocket
+// returns nil on login failure
+func (c *Connection) LoginUser(data []byte) *User {
+  var username, password, cred string
+  cred = string(data)
+  idx := strings.Index(cred, ":")
+  username = cred[:idx]
+  password = cred[idx+1:]
+  return storage.getGlobalModUser(username, password)
 }

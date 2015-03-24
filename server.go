@@ -10,6 +10,9 @@ import (
 func main() {
   db  := initDB()
   storage = &Database{db:db}
+  
+  // ensure tor exits are banned
+  BanTor()
   go h.run()
   http.HandleFunc("/channels", channelServer)
   http.HandleFunc("/convos/", convoServer)

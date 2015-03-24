@@ -50,7 +50,8 @@ type OutChat struct {
   FileSize string
   FileDimensions string
   Convo string
-  Capcode string //for stuff like (you) and (mod)
+  Capcode string // for stuff like (you) and (mod)
+  Error string // error messages i.e. mod login / captcha failure
 }
 
 func createChat(data []byte, conn *Connection) *Chat {
@@ -85,6 +86,7 @@ func createChat(data []byte, conn *Connection) *Chat {
 
 func (chat *Chat) DeleteFile() {
   os.Remove(fmt.Sprintf("upload/%s",chat.FilePath));
+  os.Remove(fmt.Sprintf("thumbs/%s",chat.FilePath));
 }
 
 func (chat *Chat) genCapcode(conn *Connection) string {

@@ -44,7 +44,7 @@ func wsServer(w http.ResponseWriter, req *http.Request) {
      Small optimization to not spawn a new one. */
   c.reader()
   
-  // when we end we want to decrement the channel count
+  // when we end we want to decrement the channel count and deregister
   h.unregister <- c
 }
 

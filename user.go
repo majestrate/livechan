@@ -45,9 +45,3 @@ func (user *User) IsChanJan(chanName string) bool {
 func (user *User) IsChanMod(chanName string) bool {
   return user.GetModLevel(chanName) > 1 
 }
-
-// ban a user
-func (user *User) BanUser(chanName string) bool {
-  // unimplemented
-  return false
-}

@@ -1,6 +1,7 @@
 package main
 
 import (
+  "fmt"
   "time"
 )
 
@@ -12,14 +13,14 @@ type Message struct {
 type Hub struct {
   channels map[string]map[*Connection]time.Time
   broadcast chan Message
-  upload chan Message
+  mod chan *User
   register chan *Connection
   unregister chan *Connection
 }
 
 var h = Hub {
   broadcast: make(chan Message),
-  upload: make(chan Message),
+  mod: make(chan *User),
   register: make(chan *Connection),
   unregister: make(chan *Connection),
   channels: make(map[string]map[*Connection]time.Time),
@@ -28,6 +29,9 @@ var h = Hub {
 func (h *Hub) run() {
   for {
     select {
+    //case c := <-h.mod:
+      
+      
     case c := <-h.register:
       if (h.channels[c.channelName] == nil) {
         h.channels[c.channelName] = make(map[*Connection]time.Time)
@@ -56,17 +60,31 @@ func (h *Hub) run() {
         }
       }
     case m := <-h.broadcast:
-      var chat = createChat(m.data, m.conn);
-      if (chat.canBroadcast(m.conn)) {
-        for c := range h.channels[m.conn.channelName] {
-          select {
-          case c.send <- chat.createJSON(c):
-          default:
-            close(c.send)
-            delete(h.channels[m.conn.channelName], c)
+      chName := m.conn.channelName
+      ipaddr := m.conn.ipAddr
+      // check for banned
+      if storage.isGlobalBanned(ipaddr) {
+        var chat OutChat
+        chat.Error = "You have been banned from Livechan"
+        m.conn.send <- chat.createJSON()
+      } else if storage.isBanned(chName, ipaddr) {
+        ban := storage.getBan(chName, ipaddr)
+        var chat OutChat
+        chat.Error = fmt.Sprintf("You are banned from %s: %s", chName, ban.Offense)
+        m.conn.send <- chat.createJSON()
+      } else {
+        var chat = createChat(m.data, m.conn);
+        if (chat.canBroadcast(m.conn)) {
+          for c := range h.channels[chName] {
+            select {
+            case c.send <- chat.createJSON(c):
+            default:
+              close(c.send)
+              delete(h.channels[chName], c)
+            }
           }
-        }
-        storage.insertChat(m.conn.channelName, *chat)
+        storage.insertChat(chName, *chat)
+      }
       }
     }
   }
