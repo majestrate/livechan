@@ -65,11 +65,10 @@ func BanTor() {
       idx  = strings.Index(line, " ")
       tor_exit := line[:idx]
       //log.Println("ban "+tor_exit)
-      stmt, err :=  tx.Prepare("INSERT INTO GlobalBans(ip, offense, expiration) VAULES (?, ?, ?)")
+      _, err :=  tx.Exec("INSERT INTO GlobalBans(ip, offense, expiration) VALUES (?, ?, ?)", tor_exit, "Tor Exit", -1)
       if err != nil {
-        log.Fatal("failed to insert entry into db")
+        log.Fatal("failed to insert entry into db", err)
       }
-      stmt.Exec(tor_exit, "Tor Exit", -1)
     }
   }
   log.Println("commit to database")

@@ -445,7 +445,7 @@ func initDB() *sql.DB{
   }
 
   createGlobalBans := `CREATE TABLE IF NOT EXISTS GlobalBans(
-    ip VARCHAR(255)
+    ip VARCHAR(255),
     offense TEXT,
     date INTEGER,
     expiration INTEGER
