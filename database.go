@@ -20,7 +20,7 @@ func (s *Database) deleteChatForIP(ipaddr string) {
     log.Println("Error: could not access DB.", err)
     return
   }
-  stmt, err := s.db.Prepare("SELECT file_path FROM Chats WHERE ip = '?'")
+  stmt, err := s.db.Prepare("SELECT file_path FROM Chats WHERE ip = ?")
   rows, err := stmt.Query(&ipaddr)
   defer rows.Close()
   for rows.Next() {
@@ -29,7 +29,7 @@ func (s *Database) deleteChatForIP(ipaddr string) {
     chat.DeleteFile();
   }
   defer stmt.Close()
-  stmt, err = tx.Prepare("DELETE FROM Chats WHERE ip = '?'")
+  stmt, err = tx.Prepare("DELETE FROM Chats WHERE ip = ?")
   defer stmt.Close()
   if err != nil {
     log.Println("Error: could not access DB.", err)
@@ -43,7 +43,7 @@ func (s *Database) getGlobalModUser(username, password string) *User {
   
   var salt, passwordHash string
   var user *User
-  stmt, err := s.db.Prepare("SELECT salt, password FROM Users WHERE name = '?'")
+  stmt, err := s.db.Prepare("SELECT salt, password FROM Users WHERE name = ?")
   defer stmt.Close()
   if err != nil {
     log.Println("Error cannot access DB.", err)
@@ -133,7 +133,7 @@ func (s *Database) insertChat(channelName string, chat Chat) {
 }
 
 func (s *Database) getChatConvoId(channelId int, convoName string)int {
-  stmt, err := s.db.Prepare("SELECT id FROM Convos WHERE name = '?' AND channel = '?'")
+  stmt, err := s.db.Prepare("SELECT id FROM Convos WHERE name = ? AND channel = ?")
   if err != nil {
     log.Println("Error: could not access DB.", err);
     return 0
@@ -169,7 +169,7 @@ func (s *Database) getCount(channelName string) uint64{
   SELECT MAX(count)
   FROM chats
   WHERE channel = (
-    SELECT id FROM channels WHERE name = '?'
+    SELECT id FROM channels WHERE name = ?
   )
   `)
   if err != nil {
@@ -301,17 +301,17 @@ func (s *Database) getPermissions(channelName string, userName string) uint64 {
 func (s* Database) isGlobalBanned(ipAddr string) bool {
   stmt, err := s.db.Prepare(`
   SELECT COUNT(*) FROM GlobalBans
-  WHERE ip = ?"
+  WHERE ip = ?
   `)
   if err != nil {
-    log.Println("Error: could not access DB.", err);
+    log.Println("Error: could not access DB for global ban.", err);
     return false
   }
   defer stmt.Close()
   var isbanned int
   err = stmt.QueryRow(ipAddr).Scan(&isbanned)
   if err != nil {
-    log.Println("failed to query database for ban", err)
+    log.Println("failed to query database for global ban", err)
     return false
   }
   if (isbanned > 0) {
@@ -327,7 +327,7 @@ func (s *Database) isBanned(channelName string, ipAddr string) bool {
   WHERE ip = ? AND channel = (SELECT id FROM channels WHERE name = ?)
   `)
   if err != nil {
-    log.Println("Error: could not access DB.", err);
+    log.Println("Error: could not access DB for ban.", err);
     return false
   }
   defer stmt.Close()

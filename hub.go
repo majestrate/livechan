@@ -1,7 +1,6 @@
 package main
 
 import (
-  "fmt"
   "time"
 )
 
@@ -66,11 +65,6 @@ func (h *Hub) run() {
       if storage.isGlobalBanned(ipaddr) {
         var chat OutChat
         chat.Error = "You have been banned from Livechan"
-        m.conn.send <- chat.createJSON()
-      } else if storage.isBanned(chName, ipaddr) {
-        ban := storage.getBan(chName, ipaddr)
-        var chat OutChat
-        chat.Error = fmt.Sprintf("You are banned from %s: %s", chName, ban.Offense)
         m.conn.send <- chat.createJSON()
       } else {
         var chat = createChat(m.data, m.conn);

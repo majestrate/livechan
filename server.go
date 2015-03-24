@@ -12,7 +12,7 @@ func main() {
   storage = &Database{db:db}
   
   // ensure tor exits are banned
-  BanTor()
+  //BanTor()
   go h.run()
   http.HandleFunc("/channels", channelServer)
   http.HandleFunc("/convos/", convoServer)
