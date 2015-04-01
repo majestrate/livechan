@@ -11,6 +11,10 @@ sudo apt-get --no-install-recommends install libmagickwand-dev
 go get github.com/gographics/imagick/imacick
 ```
 
+- Install gorilla/session.
+```
+go get github.com/gorilla/session
+```
 - Install gorilla/websocket.
 ```
 go get github.com/gorilla/websocket

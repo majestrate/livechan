@@ -2,6 +2,7 @@ package main
 
 import (
   "github.com/dchest/captcha"
+  "github.com/gorilla/sessions"
   "github.com/gorilla/websocket"
   "net/http"
   "strings"
@@ -15,7 +16,40 @@ var upgrader = websocket.Upgrader{
   CheckOrigin: func(r *http.Request) bool { return true }, // TODO: fix
 }
 
+
+// create session store
+var session = sessions.NewCookieStore(randbytes(32))
+
+
+// check for a session, create one if it does not exist
+func obtainSession(w http.ResponseWriter, req *http.Request) *sessions.Session {
+  sess, _ := session.Get(req, "livechan")
+  // newly made session
+  if sess.IsNew {
+    sess.Values["user"] = new(User)
+  }
+  return sess
+}
+
+// obtain the session's User Object, create session and user if it does not exist
+func obtainSessionUser(w http.ResponseWriter, req *http.Request) *User {
+  // obtain session
+  sess := obtainSession(w, req)
+  // get user
+  sess_user, _ := sess.Values["user"]
+  // type switch
+  switch user := sess_user.(type) {
+  case *User:
+    // return
+    return user
+    // fall through probably never happens
+  }
+  // this probably never happens
+  return nil
+}
+
 func wsServer(w http.ResponseWriter, req *http.Request) {
+  sess_user := obtainSessionUser(w, req)
   channelName := req.URL.Path[4:] // Slice off "/ws/"
   if req.Method != "GET" {
     http.Error(w, "Method not allowed", 405)
@@ -35,6 +69,7 @@ func wsServer(w http.ResponseWriter, req *http.Request) {
     ws: ws,
     channelName: channelName,
     ipAddr: req.RemoteAddr,
+    user: sess_user,
     }
   h.register <- c
 
@@ -92,7 +127,7 @@ func htmlServer(w http.ResponseWriter, req *http.Request) {
     handleRegistrationPage(w, req)
     return
   }
-
+  _ = obtainSession(w, req)
   w.Header().Set("Content-Type", "text/html; charset=utf-8")
   http.ServeFile(w, req, "index.html")
 }
@@ -107,6 +142,9 @@ func captchaServer(w http.ResponseWriter, req *http.Request) {
     captchaSolution := req.FormValue("captchaSolution")
     if captcha.VerifyString(captchaId, captchaSolution) {
       log.Println("verified captcha for", req.RemoteAddr)
+      // this user has solved the required number of captchas
+      sess_user := obtainSessionUser(w, req)
+      sess_user.SolvedCaptcha = true
     } else {
       log.Println("failed capcha for", req.RemoteAddr)
     }
@@ -115,5 +153,10 @@ func captchaServer(w http.ResponseWriter, req *http.Request) {
 
 func staticServer(w http.ResponseWriter, req *http.Request) {
   path := req.URL.Path[1:]
-  http.ServeFile(w, req, path)
+  // prevent file tranversal
+  if strings.Contains(path, "..") {
+    http.Error(w, "Not Found", 404)
+  } else {
+    http.ServeFile(w, req, path)
+  }
 }

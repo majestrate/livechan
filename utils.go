@@ -11,21 +11,24 @@ import (
   "strings"
 )
 
+// check if 2 ip address strings are the same
 func Ipv4Same(ipaddr1 string, ipaddr2 string) bool {
   delim := ":"
   return strings.Split(ipaddr1, delim)[0] == strings.Split(ipaddr2, delim)[0]
 }
 
+// get the ip address from an address string
 func ExtractIpv4(addr string) string {
   return strings.Split(addr, ":")[0]
 }
 
+// generate a new salt for hashing
 func NewSalt() string {
-  data := make([]byte, 24)
-  io.ReadFull(rand.Reader, data)
+  data := randbytes(24)
   return base64.URLEncoding.EncodeToString(data)
 }
 
+// hash password with salt
 func hashPassword(password, salt string) string {
   salt_bytes, err := base64.URLEncoding.DecodeString(salt)
   if err != nil {
@@ -38,6 +41,8 @@ func hashPassword(password, salt string) string {
   return base64.URLEncoding.EncodeToString(digest)
 }
 
+
+// ban all tor exits
 func BanTor() {
   
   log.Println("Drop old Tor Exit List")
@@ -74,4 +79,11 @@ func BanTor() {
   log.Println("commit to database")
   tx.Commit()
   log.Println("commited")
+}
+
+// return random bytes
+func randbytes(num int) []byte {
+  b := make([]byte, num)
+  io.ReadFull(rand.Reader, b)
+  return b
 }

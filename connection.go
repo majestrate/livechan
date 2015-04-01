@@ -45,14 +45,15 @@ func (c *Connection) reader() {
     } else {
       //log.Println("got message", mtype);
     }
-    //if c.user == nil {
-    //  var chat OutChat
-    //  chat.Error = "Please fill in the captcha"
-    //  c.send <- chat.createJSON()
-    //} else {
+    if c.user.SolvedCaptcha {
+      // user has solved captcha
       m := Message{data:d, conn:c}
       h.broadcast <- m
-    //}
+    } else {
+      var chat OutChat
+      chat.Error = "Please fill in the captcha"
+      c.send <- chat.createJSON()
+    }
   }
 }
 

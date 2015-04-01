@@ -1,6 +1,7 @@
 package main
 
 import (
+  "encoding/gob"
   "strconv"
   "time"
   "fmt"
@@ -14,6 +15,7 @@ type User struct {
   //Identifiers string // JSON
   Attributes map[string]string
   Session string
+  SolvedCaptcha bool
 }
 
 // generate channel property name
@@ -35,7 +37,6 @@ func (user *User) GetModLevel(chanName string) int {
   return 0
 }
 
-
 // is a channel janitor
 func (user *User) IsChanJan(chanName string) bool {
   return user.GetModLevel(chanName) > 0
@@ -44,4 +45,9 @@ func (user *User) IsChanJan(chanName string) bool {
 // is a channel Moderator
 func (user *User) IsChanMod(chanName string) bool {
   return user.GetModLevel(chanName) > 1 
+}
+
+// register user with gob package
+func init() {
+  gob.Register(&User{})
 }
