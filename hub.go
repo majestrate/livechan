@@ -13,6 +13,7 @@ type Hub struct {
   channels map[string]map[*Connection]time.Time
   broadcast chan Message
   mod chan *User
+  captcha chan string
   register chan *Connection
   unregister chan *Connection
 }
@@ -20,6 +21,7 @@ type Hub struct {
 var h = Hub {
   broadcast: make(chan Message),
   mod: make(chan *User),
+  captcha: make(chan string),
   register: make(chan *Connection),
   unregister: make(chan *Connection),
   channels: make(map[string]map[*Connection]time.Time),
@@ -28,9 +30,14 @@ var h = Hub {
 func (h *Hub) run() {
   for {
     select {
-    //case c := <-h.mod:
-      
-      
+    case sid := <-h.captcha:
+      for _, ch := range(h.channels) {
+        for conn, _ := range(ch) {
+          if conn.user.Session == sid {
+            conn.user.MarkSolvedCaptcha()
+          }
+        }
+      }
     case c := <-h.register:
       if (h.channels[c.channelName] == nil) {
         h.channels[c.channelName] = make(map[*Connection]time.Time)

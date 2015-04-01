@@ -68,8 +68,8 @@ window.addEventListener('load', function() {
       }]
     ]
   };
-  var c = new Chat(document.getElementById('chat'), chatName, options);
-  c.notify("welcome to livechan");
+  var c = new Chat(document.getElementById('chat'), chatName, options);    
+  c.login();
 });
 
 

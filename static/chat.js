@@ -242,6 +242,13 @@ function Chat(domElem, channel, options) {
   }
 }
 
+/**
+ * @brief begin login sequence
+ */
+Chat.prototype.login = function() {
+  var captcha = new Captcha(this.chatElems.output);
+  captcha.load();
+}
 
 /* @brief called when our post got mentioned
  *

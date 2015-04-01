@@ -111,3 +111,18 @@ input, textarea, select {
   left: 0px;
   z-index: 30;
 }
+
+.livechan_captcha {
+    right: 0;
+    top: 0;
+    position: absolute;
+    padding: 10px;
+    
+}
+
+.livechan_captcha_image {
+}
+
+.livechan_captcha_input {
+    float: down;
+}

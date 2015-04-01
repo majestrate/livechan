@@ -24,32 +24,14 @@ var session = sessions.NewCookieStore(randbytes(32))
 // check for a session, create one if it does not exist
 func obtainSession(w http.ResponseWriter, req *http.Request) *sessions.Session {
   sess, _ := session.Get(req, "livechan")
-  // newly made session
   if sess.IsNew {
-    sess.Values["user"] = new(User)
+    sess.ID = NewSalt()
+    sess.Save(req, w)
   }
   return sess
 }
 
-// obtain the session's User Object, create session and user if it does not exist
-func obtainSessionUser(w http.ResponseWriter, req *http.Request) *User {
-  // obtain session
-  sess := obtainSession(w, req)
-  // get user
-  sess_user, _ := sess.Values["user"]
-  // type switch
-  switch user := sess_user.(type) {
-  case *User:
-    // return
-    return user
-    // fall through probably never happens
-  }
-  // this probably never happens
-  return nil
-}
-
 func wsServer(w http.ResponseWriter, req *http.Request) {
-  sess_user := obtainSessionUser(w, req)
   channelName := req.URL.Path[4:] // Slice off "/ws/"
   if req.Method != "GET" {
     http.Error(w, "Method not allowed", 405)
@@ -64,13 +46,21 @@ func wsServer(w http.ResponseWriter, req *http.Request) {
     fmt.Println(err)
     return
   }
+  sess := obtainSession(w, req)
+  if sess.IsNew {
+    log.Println("failed to make new websocket, invalid session state")
+    http.Error(w, "Method not allowed", 405)
+    return
+  }
+  user := new(User)
+  user.Session = sess.ID
   c := &Connection{
     send: make(chan []byte, 256),
     ws: ws,
     channelName: channelName,
     ipAddr: req.RemoteAddr,
-    user: sess_user,
-    }
+    user: user,
+  }
   h.register <- c
 
   /* Start a reader/writer pair for the new connection. */
@@ -106,6 +96,7 @@ func handleRegistrationPage(w http.ResponseWriter, req *http.Request) {
 }
 
 func htmlServer(w http.ResponseWriter, req *http.Request) {
+  _ = obtainSession(w, req)
   channelName := req.URL.Path[1:] // Omit the leading "/"
 
   /* Disallow / in the name. */
@@ -127,26 +118,29 @@ func htmlServer(w http.ResponseWriter, req *http.Request) {
     handleRegistrationPage(w, req)
     return
   }
-  _ = obtainSession(w, req)
   w.Header().Set("Content-Type", "text/html; charset=utf-8")
   http.ServeFile(w, req, "index.html")
 }
 
 func captchaServer(w http.ResponseWriter, req *http.Request) {
   if req.Method == "GET" {
-    w.Header().Set("Content-Type", "text/html; charset=utf-8")
-    fmt.Fprintf(w, "{captcha: %s}", captcha.New());
+    w.Header().Set("Content-Type", "text/json; charset=utf-8")
+    fmt.Fprintf(w, "{\"captcha\": \"%s\"}", captcha.New())
     return
   } else if req.Method == "POST" {
     captchaId := req.FormValue("captchaId")
     captchaSolution := req.FormValue("captchaSolution")
     if captcha.VerifyString(captchaId, captchaSolution) {
       log.Println("verified captcha for", req.RemoteAddr)
-      // this user has solved the required number of captchas
-      sess_user := obtainSessionUser(w, req)
-      sess_user.SolvedCaptcha = true
+      // this user has solved the captcha
+      sess := obtainSession(w, req)
+      // tell hub that this guy solved a captcha
+      h.captcha <- sess.ID
+      fmt.Fprintf(w, "{\"solved\" : 1 }")
     } else {
+      // failed captcha
       log.Println("failed capcha for", req.RemoteAddr)
+      fmt.Fprintf(w, "{\"solved\" : 0 }")
     }
   }
 }

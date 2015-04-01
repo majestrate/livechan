@@ -1,7 +1,7 @@
 package main
 
 import (
-  "encoding/gob"
+//  "encoding/gob"
   "strconv"
   "time"
   "fmt"
@@ -47,7 +47,6 @@ func (user *User) IsChanMod(chanName string) bool {
   return user.GetModLevel(chanName) > 1 
 }
 
-// register user with gob package
-func init() {
-  gob.Register(&User{})
+func (user *User) MarkSolvedCaptcha() {
+  user.SolvedCaptcha = true
 }
