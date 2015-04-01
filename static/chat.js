@@ -231,6 +231,7 @@ var messageRules = [
  */
 function Chat(domElem, channel, options) {
   this.name = channel;
+  this.domElem = domElem;
   this.chatElems = buildChat(domElem, channel);
   this.connection = initWebSocket(channel);
   this.initOutput();
@@ -246,7 +247,7 @@ function Chat(domElem, channel, options) {
  * @brief begin login sequence
  */
 Chat.prototype.login = function() {
-  var captcha = new Captcha(this.chatElems.output);
+  var captcha = new Captcha(this.domElem);
   captcha.load();
 }
 
