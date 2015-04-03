@@ -320,7 +320,7 @@ func (s* Database) isGlobalBanned(ipAddr string) bool {
 
 func (self *Database) getGlobalBanReason(ipAddr string) string {
   stmt, err := self.db.Prepare(`
-  SELECT reason FROM GlobalBans WHERE ip = ?
+  SELECT offense FROM GlobalBans WHERE ip = ?
   `)
   if err != nil {
     log.Println("error with global ban reason query", err)
