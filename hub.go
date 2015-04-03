@@ -99,7 +99,7 @@ func (h *Hub) run() {
       } else {} // do nothing if presence does not exist
     case m := <-h.broadcast:
       chName := m.conn.channelName
-      ipaddr := m.conn.ipAddr
+      ipaddr := ExtractIpv4(m.conn.ipAddr)
       // check for banned
       if storage.isGlobalBanned(ipaddr) {
         // tell them they are banned
