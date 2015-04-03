@@ -198,7 +198,7 @@ func captchaServer(w http.ResponseWriter, req *http.Request) {
       log.Println("failed capcha for", req.RemoteAddr)
     }
     // write response
-    response := fmt.Sprintf("{\"solved\" : %s \"}", responseCode)
+    response := fmt.Sprintf("{\"solved\" : %d }", responseCode)
     fmt.Fprintf(w, response)
   }
 }

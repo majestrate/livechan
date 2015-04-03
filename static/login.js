@@ -116,7 +116,7 @@ Captcha.prototype.process = function() {
  */
 Captcha.prototype.hide = function () {
   console.log("hide captcha");
-  this.widget.widget.style.visibility = 'hidden';
+  this.widget.widget.style.zIndex = -1;
 }
 
 /**
