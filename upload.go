@@ -10,6 +10,8 @@ import (
   "log"
 )
 
+// generate filename for upload
+// TODO: use go stdlib
 func genUploadFilename(filename string) string {
   // FIXME invalid filenames without extension
   // get time
@@ -25,18 +27,26 @@ func genUploadFilename(filename string) string {
 // handle file upload
 func handleUpload(chat *InChat, fname string) {
 
+  // get the path for the original image
   osfname := filepath.Join("upload", fname)
+  // get the path for the thumbnail
   thumbnail := filepath.Join("thumbs", fname)
+
+  // decode the upload data
   data, err := base64.StdEncoding.DecodeString(chat.File)
   if err != nil {
     log.Println("error converting base64 upload", err)
     return
   }
+
+  // generate thumbail
+  // write it out
   err = generateThumbnail(fname, thumbnail, data)
   if err != nil {
     log.Println("failed to generate thumbnail", err)
     return
   }
+  // write out original file
   err = ioutil.WriteFile(osfname, data, 0644)
   if err != nil {
     log.Println("failed to save upload", err);

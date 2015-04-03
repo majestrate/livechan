@@ -1,7 +1,6 @@
 package main
 
 import (
-//  "encoding/gob"
   "strconv"
   "time"
   "fmt"
@@ -47,6 +46,7 @@ func (user *User) IsChanMod(chanName string) bool {
   return user.GetModLevel(chanName) > 1 
 }
 
+// mark this user as having solved a captcha
 func (user *User) MarkSolvedCaptcha() {
   user.SolvedCaptcha = true
 }

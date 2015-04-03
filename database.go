@@ -2,6 +2,7 @@ package main
 
 import (
   "database/sql"
+  "fmt"
   _ "github.com/mattn/go-sqlite3"
   "time"
   "log"
@@ -314,11 +315,25 @@ func (s* Database) isGlobalBanned(ipAddr string) bool {
     log.Println("failed to query database for global ban", err)
     return false
   }
-  if (isbanned > 0) {
-    return true
-  } else {
-    return false;
+  return isbanned > 0
+}
+
+func (self *Database) getGlobalBanReason(ipAddr string) string {
+  stmt, err := self.db.Prepare(`
+  SELECT reason FROM GlobalBans WHERE ip = ?
+  `)
+  if err != nil {
+    log.Println("error with global ban reason query", err)
+    return fmt.Sprintf("error: %s", err)
   }
+  var reason string
+  defer stmt.Close()
+  err = stmt.QueryRow(ipAddr).Scan(&reason)
+  if err != nil {
+    log.Println("error obtaining global ban record", err)
+    return fmt.Sprintf("error: %s", err)
+  }
+  return reason
 }
 
 func (s *Database) isBanned(channelName string, ipAddr string) bool {
