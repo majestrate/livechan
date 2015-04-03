@@ -192,6 +192,8 @@ func captchaServer(w http.ResponseWriter, req *http.Request) {
       responseCode = 1
       // set session as solved captcha
       sess.Values["captcha"] = true
+      // save session states
+      sess.Save(req, w)
     } else {
       // failed captcha
       // don't do shit
