@@ -441,14 +441,10 @@ Chat.prototype.insertChat = function(chat, number) {
   if (!number) {
     this.error("Error: invalid chat number.");
   }
+  var self = this;
   var outputElem = this.chatElems.output;
-  var doScroll = Math.abs(outputElem.scrollTop
-                 + outputElem.clientHeight
-                 - outputElem.scrollHeight);
   outputElem.appendChild(chat);
-  if (doScroll < 5) {
-    this.scroll();
-  }
+  self.scroll();
 }
 
 /* @brief Generates a chat div.
@@ -457,6 +453,7 @@ Chat.prototype.insertChat = function(chat, number) {
  * @return A dom element.
  */
 Chat.prototype.generateChat = function(data) {
+  var self = this;
   var chat = document.createElement('div');
   chat.className = 'livechan_chat_output_chat';
 
@@ -475,6 +472,7 @@ Chat.prototype.generateChat = function(data) {
   body.className = 'livechan_chat_output_body';
   var message = document.createElement('div');
   message.className = 'livechan_chat_output_message';
+  
 
   if (data.Name) {
     name.appendChild(document.createTextNode(data.Name));
@@ -494,6 +492,7 @@ Chat.prototype.generateChat = function(data) {
     img.className = 'livechan_image_thumb';
     a.appendChild(img);
     message.appendChild(a);
+    img.onload = function() { self.scroll(); }
   }
     
   if (data.Capcode) {
@@ -521,7 +520,6 @@ Chat.prototype.generateChat = function(data) {
   }
 
   if (data.Count) {
-    var self = this;
     count.setAttribute('id', 'livechan_chat_'+data.Count);
     count.appendChild(document.createTextNode(data.Count));
     count.addEventListener('click', function() {
