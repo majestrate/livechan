@@ -386,7 +386,7 @@ Chat.prototype.initOutput = function() {
     } else {
       if ( data.Error ) {
           self.notify(data.Error);
-          if (data.Error.contains("the captcha")) {
+          if (data.Error.indexOf("the captcha") > -1 ) {
               self.login();
           }
       } else {
