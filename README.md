@@ -8,7 +8,7 @@ A chat server written in Go.
 - Install go imagick
 ```
 sudo apt-get --no-install-recommends install libmagickwand-dev
-go get github.com/gographics/imagick/imacick
+go get github.com/gographics/imagick/imagick
 ```
 
 - Install gorilla/session.
