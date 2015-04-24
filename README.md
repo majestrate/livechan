@@ -36,3 +36,9 @@ git clone https://github.com/majestrate/livechan.git
 go run *.go
 ```
 - Open a browser and go to `localhost:18080`.
+
+
+
+TODO:
+
+* use x-forwarded-for header for ip detection
