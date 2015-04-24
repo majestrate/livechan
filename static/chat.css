@@ -131,3 +131,7 @@ input, textarea, select {
     forground: black;
     background: black;
 }
+
+.livechan_spoiler:hover {
+    forground: white;
+}
