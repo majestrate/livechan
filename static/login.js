@@ -34,7 +34,7 @@ function buildCaptcha(domElem, prefix) {
       button: captcha_submit,
       image: captcha_image,
       entry: captcha_entry,
-      prefix: prefix;
+      prefix: prefix,
     }
 }
 
