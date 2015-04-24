@@ -148,9 +148,8 @@ func htmlServer(w http.ResponseWriter, req *http.Request) {
 
   /* Disallow / in the name. */
   if strings.Contains(channelName, "/") {
-    //http.Error(w, "Method not allowed", 405)
-    channelName = strings.Split(channelName, "/")[0]
-    http.Redirect(w, req, "../"+channelName, 302)
+    msg := "Channels don't end with /\nRemote trailing /\n"
+    w.Write([]byte(msg))
     return
   }
 
