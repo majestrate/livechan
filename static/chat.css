@@ -128,10 +128,10 @@ input, textarea, select {
 }
 
 .livechan_spoiler {
-    forground: black;
+    text: black;
     background: black;
 }
 
 .livechan_spoiler:hover {
-    forground: white;
+    text: white;
 }
