@@ -176,8 +176,8 @@ func createJSONs(chats []Chat, conn * Connection) []byte{
 // check if this connection can broadcast
 // TODO: is this the best way?
 func (chat *Chat) canBroadcast(conn *Connection) bool{
-  // no message? don't broadcast
-  if len(chat.Message) == 0 {
+  // no message or file? don't broadcast.
+  if len(chat.Message) == 0 && len(chat.FilePath) == 0 {
     return false
   }
   // time based rate limit

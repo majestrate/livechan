@@ -211,7 +211,7 @@ var messageRules = [
     if ( m.length >= 2 && m[1].trim !== '') {
       out = document.createElement('span');
       out.className = 'livechan_spoiler';
-      out.TextContent = m[1];
+      out.textContent = m[1];
     } else {
       out = document.createTextNode(m);
     }
