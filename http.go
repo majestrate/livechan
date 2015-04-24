@@ -148,7 +148,7 @@ func htmlServer(w http.ResponseWriter, req *http.Request) {
 
   // redirect to channel if ends with /
   if strings.HasSuffix(channelName, "/") {
-    http.Redirect(w, req, req.URL.Path[:len(req.URL.Path)-2], 301)
+    http.Redirect(w, req, req.URL.Path[len(req.URL.Path)-2:], 301)
     return
   }
   /* Disallow / in the name. */
