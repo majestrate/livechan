@@ -509,7 +509,7 @@ func initDB(driver, url string) *sql.DB{
     user_id INTEGER,
     name VARCHAR(255),
     value TEXT,
-    FOREIGN KEY(user_id) REFERENCES Users.id ON DELETE CASCADE
+    FOREIGN KEY(user_id) REFERENCES Users(id) ON DELETE CASCADE
     )`
   
   tables["GlobalBans"] = `CREATE TABLE IF NOT EXISTS GlobalBans(
