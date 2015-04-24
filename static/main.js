@@ -52,7 +52,8 @@ function loadCSS(themeName, replace, callback) {
 
 /* Initialization functions called here. */
 window.addEventListener('load', function() {
-  var chatName = location.pathname.slice(1);
+  var prefix = "/";
+  var chatName = location.pathname.slice(prefix.length);
   chatName = chatName ? chatName : 'General';
   var link = loadCSS(loadDefault('theme'));
   var options = {
