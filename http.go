@@ -56,6 +56,13 @@ func wsServer(w http.ResponseWriter, req *http.Request) {
     http.Error(w, "Method not allowed", 405)
     return
   }
+
+  // redirect to channel if ends with /
+  if strings.HasSuffix(channelName, "/") {
+    http.Redirect(w, r, req.URL.Path[:len(req.URL.Path)-2], 301)
+    return
+  }
+  
   // check for chat existing
   if (storage.getChatChannelId(channelName) == 0) {
     http.Error(w, "Not Found", 404)

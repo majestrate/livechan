@@ -21,8 +21,7 @@ type Hub struct {
   broadcast chan Message
 
   // moderation based events
-  // TODO: change the type to ModMessage
-  mod chan *User
+  mod chan ModEvent
 
   // captcha events
   captcha chan string
@@ -37,7 +36,7 @@ type Hub struct {
 // todo: shouldn't this be made in main?
 var h = Hub {
   broadcast: make(chan Message),
-  mod: make(chan *User),
+  mod: make(chan ModEvent),
   captcha: make(chan string),
   register: make(chan *Connection),
   unregister: make(chan *Connection),
@@ -49,6 +48,11 @@ var h = Hub {
 func (h *Hub) run() {
   for {
     select {
+
+      // check for mod event
+    case ev := <-h.mod:
+      
+      
       // check for captcha solved events
     case sid := <-h.captcha:
       // find the connections with this session ID
