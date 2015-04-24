@@ -44,7 +44,9 @@ function Captcha(domElem, options) {
   } else {
     this.options = {};
   }
-  this.widget = buildCaptcha(domElem, options.prefix);
+  
+  this.prefix = options.prefix || "/";  
+  this.widget = buildCaptcha(domElem, this.prefix);
   var self = this;
   this.widget.button.addEventListener("click", function() { self.process(); });
 }
