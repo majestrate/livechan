@@ -40,23 +40,74 @@ func (s *Database) deleteChatForIP(ipaddr string) {
   tx.Commit()
 }
 
-func (s *Database) getGlobalModUser(username, password string) *User {
+
+// get the user attributes / permissions for a global moderator
+func (s *Database) getModAttributes(username string) map[string]string {
+  attrs := make(map[string]string)
+  stmt, err := s.db.Prepare("SELECT name, value FROM UserAttributes WHERE user_id = ( SELECT id FROM Users WHERE name = ? )")
+  defer stmt.Close()
+  rows, err := stmt.Query(&username)
+  if err != nil {
+    log.Println("error getting mod attributes", err)
+    return attrs
+  }
+  defer rows.Close()
+  for rows.Next() {
+    var attr_name, attr_val string
+    rows.Scan(&attr_name, &attr_val)
+    attrs[attr_name] = attr_val
+  }
+  return attrs
+}
+
+// set a mod's attribute to a given value
+// return true if the operation succeeded otherwise false
+func (s *Database) setModAttribute(username, attribute_name, attribute_val string) bool {
+  tx, err := s.db.Begin()
+  if err != nil {
+    log.Println("failed to set mod",username,"attribute", attribute_name,"to", attribute_val)
+    return false
+  }
+  stmt, err := tx.Prepare(`
+    INSERT OR REPLACE INTO UserAttributes 
+    VALUES (
+      (SELECT id FROM Users WHERE name = ?),
+      ?,
+      ?
+    )
+  `)
+  if err != nil {
+    log.Println("failed to prepare query for setModAttribute()", err)
+    return false
+  }
+  defer stmt.Close()
+  _, err = stmt.Exec(username, attribute_name, attribute_val)
+  if err != nil {
+    log.Println("failed to execute query for setModAttribute()", err)
+    tx.Rollback()
+    return false
+  }
+  tx.Commit()
+  return true
+}
+
+// check if a moderator login is correct
+// return true if it is a valid login otherwise false
+func (s *Database) checkModLogin(username, password string) bool {
   
   var salt, passwordHash string
-  var user *User
   stmt, err := s.db.Prepare("SELECT salt, password FROM Users WHERE name = ?")
   defer stmt.Close()
   if err != nil {
     log.Println("Error cannot access DB.", err)
-    return nil
+    return false
   }
   
   stmt.QueryRow(&username).Scan(&salt, &passwordHash)
   if hashPassword(password, salt) == passwordHash {
-    user = new(User)
-    // todo: fill out fields
+    return true
   }
-  return user
+  return false
 }
 
 func (s *Database) insertChannel(channelName string) {
@@ -383,15 +434,26 @@ func (s *Database) getBan(channelName string, ipAddr string) *Ban {
   return ban
 }
 
-func initDB() *sql.DB{
-  log.Println("initialize database")
-  db, err := sql.Open("sqlite3", "./livechan.db");
+func createTable(db *sql.DB, name, query string) error {
+  log.Println("Create table", name)
+  _, err := db.Exec(query)
   if err != nil {
-    log.Println("Unable to open db.", err);
+    log.Println("Unable to create Table",name, err);
+  }
+  return err
+}
+
+func initDB(driver, url string) *sql.DB{
+  log.Println("initialize database")
+  db, err := sql.Open(driver, url);
+  if err != nil {
+    log.Println("Unable to open db.", err)
+    return nil
   }
 
-  /* Create the tables. */
-  createChannels := `CREATE TABLE IF NOT EXISTS Channels(
+  tables := make(map[string]string)
+  
+  tables["Channels"] = `CREATE TABLE IF NOT EXISTS Channels(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(255),
     api_key VARCHAR(255),
@@ -399,12 +461,8 @@ func initDB() *sql.DB{
     restricted INTEGER,
     generated INTEGER
   )`
-  _, err = db.Exec(createChannels)
-  if err != nil {
-    log.Println("Unable to create Channels.", err);
-  }
-
-  createConvos := `CREATE TABLE IF NOT EXISTS Convos(
+  
+  tables["Convos"] = `CREATE TABLE IF NOT EXISTS Convos(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(255),
     channel INTEGER,
@@ -413,12 +471,8 @@ func initDB() *sql.DB{
     FOREIGN KEY(channel)
       REFERENCES Channels(id) ON DELETE CASCADE
   )`
-  _, err = db.Exec(createConvos)
-  if err != nil {
-    log.Println("Unable to create Convos.", err);
-  }
 
-  createChats := `CREATE TABLE IF NOT EXISTS Chats(
+  tables["Chats"] = `CREATE TABLE IF NOT EXISTS Chats(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     ip VARCHAR(255),
     name VARCHAR(255),
@@ -440,12 +494,8 @@ func initDB() *sql.DB{
       REFERENCES Channels(id) ON DELETE CASCADE,
     UNIQUE(count, channel) ON CONFLICT REPLACE
   )`
-  _, err = db.Exec(createChats)
-  if err != nil {
-    log.Println("Unable to create Chats.", err);
-  }
 
-  createUsers := `CREATE TABLE IF NOT EXISTS Users(
+  tables["Users"] = `CREATE TABLE IF NOT EXISTS Users(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(255),
     password VARCHAR(255),
@@ -454,22 +504,22 @@ func initDB() *sql.DB{
     date INTEGER,
     identifiers TEXT
   )`
-  _, err = db.Exec(createUsers)
-  if err != nil {
-    log.Println("Unable to create Users.", err);
-  }
 
-  createGlobalBans := `CREATE TABLE IF NOT EXISTS GlobalBans(
+  tables["UserAttributes"] = `CREATE TABLE IF NOT EXISTS UserAttributes(
+    user_id INTEGER,
+    name VARCHAR(255),
+    value TEXT,
+    FOREIGN KEY(user_id) REFERENCES Users.id ON DELETE CASCADE
+    )`
+  
+  tables["GlobalBans"] = `CREATE TABLE IF NOT EXISTS GlobalBans(
     ip VARCHAR(255),
     offense TEXT,
     date INTEGER,
     expiration INTEGER
   )`
-  _, err = db.Exec(createGlobalBans)
-  if err != nil {
-    log.Println("Unable to create GlobalBans.", err);
-  }
-  createBans := `CREATE TABLE IF NOT EXISTS Bans(
+
+  tables["Bans"] = `CREATE TABLE IF NOT EXISTS Bans(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     ip VARCHAR(255),
     offense TEXT,
@@ -479,12 +529,8 @@ func initDB() *sql.DB{
     FOREIGN KEY(banner)
       REFERENCES Users(id) ON DELETE CASCADE
   )`
-  _, err = db.Exec(createBans)
-  if err != nil {
-    log.Println("Unable to create Bans.", err);
-  }
 
-  createOwners := `CREATE TABLE IF NOT EXISTS Owners(
+  tables["Owners"] = `CREATE TABLE IF NOT EXISTS Owners(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user INTEGER,
     channel INTEGER,
@@ -494,11 +540,15 @@ func initDB() *sql.DB{
     FOREIGN KEY(channel)
       REFERENCES Channels(id) ON DELETE CASCADE
   )`
-  _, err = db.Exec(createOwners)
-  if err != nil {
-    log.Println("Unable to create Owners.", err);
-  }
 
+  for table := range(tables) {
+    query := tables[table]
+    err = createTable(db, table, query)
+    if err != nil {
+      log.Fatal("did not create table", table)
+    }
+  }
+  
   return db
 }
 

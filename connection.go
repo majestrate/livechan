@@ -3,7 +3,7 @@ package main
 import (
   "github.com/gorilla/websocket"
   //"log"
-  "strings"
+  //"strings"
   "time"
 )
 
@@ -88,16 +88,4 @@ func (c *Connection) writer() {
       }
     }
   }
-}
-
-
-// try mod login for user given data from websocket
-// returns nil on login failure
-func (c *Connection) LoginUser(data []byte) *User {
-  var username, password, cred string
-  cred = string(data)
-  idx := strings.Index(cred, ":")
-  username = cred[:idx]
-  password = cred[idx+1:]
-  return storage.getGlobalModUser(username, password)
 }

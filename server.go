@@ -9,7 +9,7 @@ import (
 
 func main() {
   // make database
-  db  := initDB()
+  db  := initDB("sqlite3", "./livechan.db")
   // set storage
   storage = &Database{db:db}
   

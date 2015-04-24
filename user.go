@@ -9,7 +9,7 @@ import (
 /* Registered users can moderate, own channels, etc. */
 type User struct {
   Name string
-  Password string
+  //Password string
   Created time.Time
   //Identifiers string // JSON
   Attributes map[string]string
@@ -49,4 +49,24 @@ func (user *User) IsChanMod(chanName string) bool {
 // mark this user as having solved a captcha
 func (user *User) MarkSolvedCaptcha() {
   user.SolvedCaptcha = true
+}
+
+// attempt login to the moderation system
+// return true on success otherwise false
+func (user *User) Login(password string) bool {
+  if storage.checkModLogin(user.Name, password) {
+    // refresh this user's information
+    return user.Refresh()
+  }
+  return false
+}
+
+
+// refresh the user's information from the backend
+// return true on success otherwise false
+func (user *User) Refresh() bool {
+  // get our user's attributes
+  user.Attributes = storage.getModAttributes(user.Name)
+  // XXX: do more stuff if needed
+  return true
 }
