@@ -50,7 +50,7 @@ func (h *Hub) run() {
     select {
 
       // check for mod event
-    //case ev := <-h.mod:
+    case ev := <-h.mod:
       
       
       // check for captcha solved events
