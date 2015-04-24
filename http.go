@@ -146,14 +146,11 @@ func htmlServer(w http.ResponseWriter, req *http.Request) {
   _ = obtainSession(w, req)
   channelName := req.URL.Path[1:] // Omit the leading "/"
 
-  // redirect to channel if ends with /
-  if strings.HasSuffix(channelName, "/") {
-    http.Redirect(w, req, req.URL.Path[len(req.URL.Path)-2:], 301)
-    return
-  }
   /* Disallow / in the name. */
   if strings.Contains(channelName, "/") {
-    http.Error(w, "Method not allowed", 405)
+    //http.Error(w, "Method not allowed", 405)
+    channelName = strings.Split(channelName, "/")[0]
+    http.Redirect(w, req, "../"+channelName, 302)
     return
   }
 

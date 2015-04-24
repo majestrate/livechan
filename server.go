@@ -14,7 +14,7 @@ func main() {
   storage = &Database{db:db}
   
   // ensure tor exits are banned
-  //BanTor()
+  BanTor()
 
   // run hub
   // TODO: shouldn't hub be made in this method?
