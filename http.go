@@ -145,11 +145,14 @@ func handleRegistrationPage(w http.ResponseWriter, req *http.Request) {
 func htmlServer(w http.ResponseWriter, req *http.Request) {
   _ = obtainSession(w, req)
   channelName := req.URL.Path[1:] // Omit the leading "/"
-
+  
   /* Disallow / in the name. */
   if strings.Contains(channelName, "/") {
-    msg := "Channels don't end with /\nRemote trailing /\n"
-    w.Write([]byte(msg))
+    // redirect to channel
+    idx :=  strings.Index(channelName, "/")
+    channelName = channelName[:idx]
+    prefix := cfg["prefix"]
+    http.Redirect(w, req, prefix+channelName, 302)
     return
   }
 

@@ -7,14 +7,24 @@ import (
   "log"
 )
 
+var cfg = LoadConfig("livechan.ini")
+
 func main() {
+
+  cfg.Validate()
+  
+  db_type := cfg["db_type"]
+  db_url := cfg["db_url"]
+  
   // make database
-  db  := initDB("sqlite3", "./livechan.db")
+  db  := initDB(db_type, db_url)
   // set storage
   storage = &Database{db:db}
   
   // ensure tor exits are banned
-  BanTor()
+  if cfg.BanTor() {
+    BanTor()
+  }
 
   // run hub
   // TODO: shouldn't hub be made in this method?
@@ -36,7 +46,7 @@ func main() {
   
   // start server
   log.Println("livechan going up")
-  err := http.ListenAndServe(":18080", nil)
+  err := http.ListenAndServe(cfg["bind"], nil)
   if err != nil {
     log.Fatal("Unable to serve: ", err)
   }

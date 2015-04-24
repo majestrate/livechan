@@ -27,6 +27,10 @@ go get github.com/dchest/captcha
 ```
 go get github.com/mattn/go-sqlite3
 ```
+- Get configparser
+```
+go get github.com/majestrate/configparser
+```
 - Get the source code.
 ```
 git clone https://github.com/majestrate/livechan.git
