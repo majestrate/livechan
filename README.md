@@ -13,7 +13,7 @@ go get github.com/gographics/imagick/imagick
 
 - Install gorilla/session.
 ```
-go get github.com/gorilla/session
+go get github.com/gorilla/sessions
 ```
 - Install gorilla/websocket.
 ```
