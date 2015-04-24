@@ -247,7 +247,7 @@ function Chat(domElem, channel, options) {
  * @brief begin login sequence
  */
 Chat.prototype.login = function() {
-  var captcha = new Captcha(this.domElem);
+  var captcha = new Captcha(this.domElem, this.options);
   captcha.load();
 }
 

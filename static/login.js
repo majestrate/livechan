@@ -1,6 +1,6 @@
 
 
-function buildCaptcha(domElem) {
+function buildCaptcha(domElem, prefix) {
     var captcha_widget = document.createElement("div");
     captcha_widget.className = "livechan_captcha";
 
@@ -33,12 +33,18 @@ function buildCaptcha(domElem) {
       widget: captcha_widget,
       button: captcha_submit,
       image: captcha_image,
-      entry: captcha_entry
+      entry: captcha_entry,
+      prefix: prefix;
     }
 }
 
-function Captcha(domElem) {
-  this.widget = buildCaptcha(domElem);
+function Captcha(domElem, options) {
+  if (options) {
+    this.options = options;
+  } else {
+    this.options = {};
+  }
+  this.widget = buildCaptcha(domElem, options.prefix);
   var self = this;
   this.widget.button.addEventListener("click", function() { self.process(); });
 }
@@ -48,7 +54,7 @@ Captcha.prototype.load = function() {
   var xhr = new XMLHttpRequest();
 
   // TODO: https detection
-  var url = "http://" + location.hostname + ":18080";
+  var url = "http://" + location.hostname + self.prefix ;
 
   xhr.open('get', url +"/captcha.json");
   xhr.onreadystatechange = function () {
@@ -87,7 +93,7 @@ Captcha.prototype.process = function() {
     var xhr = new XMLHttpRequest();
     var self = this;
     // TODO: https detection
-    var url = "http://" + location.hostname + ":18080/captcha.json";
+    var url = "http://" + location.hostname + self.prefix + "captcha.json";
     xhr.open('post', url, true);
     xhr.onreadystatechange = function() {
       if (xhr.readyState == 4 && xhr.status == 200 ) {

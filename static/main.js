@@ -57,6 +57,7 @@ window.addEventListener('load', function() {
   chatName = chatName ? chatName : 'General';
   var link = loadCSS(loadDefault('theme'));
   var options = {
+    prefix: prefix,
     customCommands: [
       [/s(witch)? (.*)/, function(m) {
         window.location.href = m[2];
