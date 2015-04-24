@@ -18,11 +18,27 @@ var upgrader = websocket.Upgrader{
   CheckOrigin: func(r *http.Request) bool { return true }, // TODO: fix
 }
 
+// if we have x-forwarded-for header use that
+// otherwise use remote address
+// in nginx you need to set this in your reverse proxy settings
+//
+//  loaction / {
+//    proxy_set_header X-Real-IP $remote_addr;
+//    proxy_pass http://127.0.0.1:18080/
+//  }
+//
+func getRealIP(req * http.Request) string {
+  ip := req.Header.Get("X-Real-IP")
+  if len(ip) > 0 {
+    return ip
+  } else {
+    return req.RemoteAddr
+  }
+}
 
 // create session store
 // seed with random bytes each startup
 var session = sessions.NewCookieStore(randbytes(32))
-
 
 // check for a session, create one if it does not exist
 func obtainSession(w http.ResponseWriter, req *http.Request) *sessions.Session {
@@ -99,7 +115,7 @@ func wsServer(w http.ResponseWriter, req *http.Request) {
     send: make(chan []byte, 256),
     ws: ws,
     channelName: channelName,
-    ipAddr: req.RemoteAddr,
+    ipAddr: getRealIP(req),
     user: user,
   }
 
@@ -186,6 +202,7 @@ func captchaServer(w http.ResponseWriter, req *http.Request) {
     fmt.Fprintf(w, "{\"captcha\": \"%s\"}", captcha.New())
     return
   } else if req.Method == "POST" {
+    addr :=  getRealIP(req)
     // we are solving a requested captcha
     responseCode := 0
     captchaId := req.FormValue("captchaId")
@@ -193,7 +210,7 @@ func captchaServer(w http.ResponseWriter, req *http.Request) {
     if captcha.VerifyString(captchaId, captchaSolution) {
 
       // this user has solved the captcha
-      log.Println("verified captcha for", req.RemoteAddr)
+      log.Println("verified captcha for", addr)
 
       // obtain our session object
       sess := obtainSession(w, req)
@@ -208,7 +225,7 @@ func captchaServer(w http.ResponseWriter, req *http.Request) {
     } else {
       // failed captcha
       // don't do shit
-      log.Println("failed capcha for", req.RemoteAddr)
+      log.Println("failed capcha for", addr)
     }
     // write response
     response := fmt.Sprintf("{\"solved\" : %d }", responseCode)
