@@ -2,6 +2,7 @@ package main
 
 import (
   "time"
+  "log"
 )
 
 const (
@@ -14,7 +15,7 @@ const (
   gen_id = 2
 )
 
-type Channel struct {
+type ChannelInfo struct {
   Name string
   Restrictions uint64
   Generated uint64
@@ -50,4 +51,73 @@ func (self *Ban) MarkCP() {
 func (self *Ban) Expires(bantime time.Duration) {
   self.Date = time.Now()
   self.Expiration = time.Now().Add(bantime)
+}
+
+type Channel struct {
+  // connections for this channel
+  Connections map[*Connection]time.Time
+  // converstations in this channel
+  // TODO: use this
+  Convos []string
+  Scrollback uint64
+  Name string
+}
+
+func NewChannel(name string) *Channel {
+  chnl := new(Channel)
+  chnl.Name = name
+  chnl.Scrollback = 50
+  chnl.Convos = make([]string, 10)
+  chnl.Connections = make(map[*Connection]time.Time)
+  return chnl
+}
+
+func (self *Channel) OnBroadcast(msg Message) {
+  // if they aren't banned create the chat message
+  chat := createChat(msg.data, msg.conn)
+  // check if we can broadcast to the channel
+  // potentially check for +m
+  if (chat.canBroadcast(msg.conn)) {
+    for con := range self.Connections {
+      // for each connection send a chat message
+      select {
+        // send it 
+      case con.send <- chat.createJSON(con):
+        // if we can't send it unregister the chat
+      default:
+        // TODO is this okay?
+        h.unregister <- con
+      }
+    }
+    storage.insertChat(self, *chat)
+  } else {} // TODO: should we really do nothing when the channel can't broadcast?
+}
+
+func (self *Channel) OnPart(conn *Connection) {
+  if _, ok := self.Connections[conn]; ok {
+    delete(self.Connections, conn)
+    close(conn.send)
+    // anounce user part
+    
+    var chat OutChat
+    chat.UserCount = len(self.Connections)
+    jsondata := chat.createJSON()
+    // tell everyone in channel the user count  decremented
+    for c := range self.Connections {
+      c.send <- jsondata
+    }
+  } else {
+    log.Println("cannot close non existant user?")
+  }
+}
+
+func (self *Channel) OnJoin(conn *Connection) {
+  // anounce new user join
+  var chat OutChat
+  chat.UserCount = len(self.Connections)
+  jsondata := chat.createJSON()
+  // send to everyone in this channel
+  for ch := range self.Connections {
+    ch.send <- jsondata
+  }
 }

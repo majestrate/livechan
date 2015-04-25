@@ -114,6 +114,7 @@ func createChat(data []byte, conn *Connection) *Chat {
 
 // delete files associated with this chat
 func (chat *Chat) DeleteFile() {
+  log.Println("Delete Chat Files", chat.FilePath)
   os.Remove(filepath.Join("upload", chat.FilePath))
   os.Remove(filepath.Join("thumbs", chat.FilePath))
 }
@@ -180,8 +181,9 @@ func (chat *Chat) canBroadcast(conn *Connection) bool{
   if len(chat.Message) == 0 && len(chat.FilePath) == 0 {
     return false
   }
+  chnl := h.channels[conn.channelName]
   // time based rate limit
-  var t = h.channels[conn.channelName][conn]
+  t := chnl.Connections[conn]
   // limit minimum broadcast time to 4 seconds
   // don't broadcast
   if time.Now().Sub(t).Seconds() < 4 {
@@ -189,7 +191,7 @@ func (chat *Chat) canBroadcast(conn *Connection) bool{
   }
   // increment chat count and allow broadcast
   // TODO: move elsewhere?
-  h.channels[conn.channelName][conn] = time.Now()
+  chnl.Connections[conn] = time.Now()
   chat.Count = storage.getCount(conn.channelName) + 1
   return true
 }

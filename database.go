@@ -60,6 +60,94 @@ func (s *Database) getModAttributes(username string) map[string]string {
   return attrs
 }
 
+// do a mod event
+// does not check permissions
+func (s *Database) ProcessModEvent(scope, action int, channelName string, postID int, expires int64) {
+  // should these chats be deleted from the database?
+  delChats := action >= ACTION_DELETE_POST
+  // should these chats have their files removed?
+  delChatFiles := action >= ACTION_DELETE_FILE
+  tx, err := s.db.Begin()
+  if err != nil {
+    log.Println("failed to prepare transaction for mod action", err)
+    return
+  }
+  
+  var queryFile, queryDelete string
+  if scope == SCOPE_GLOBAL && action <= ACTION_DELETE_ALL {
+    // all posts in this for this ip
+    queryFile = `SELECT file_path FROM Chats WHERE ip = ( 
+                   SELECT ip FROM Chats WHERE 
+                     channel IN (
+                       SELECT id FROM Channels WHERE name = ? LIMIT 1
+                   ) AND count = ?
+                 )`
+    queryDelete = `DELETE FROM Chats WHERE ip = (
+                     SELECT ip FROM Chats WHERE 
+                       channel IN (
+                         SELECT id FROM Channels WHERE name = ? LIMIT 1
+                     ) AND count = ?
+                   )`
+  } else if scope == SCOPE_CHANNEL && action <= ACTION_DELETE_ALL {
+    // all posts in this channel for this ip
+    queryFile = `WITH chanID(id) AS ( SELECT id FROM Channels WHERE name = ? LIMIT 1 )
+                 SELECT file_path FROM Chats WHERE channel IN chanID
+                 AND ip = ( SELECT ip FROM Chats WHERE channel IN chanID AND count = ? )`
+    queryDelete = `WITH chanID(id) AS ( SELECT id FROM Channels WHERE name = ? LIMIT 1 )
+                   DELETE FROM Chats WHERE channel IN chanID
+                   AND ip = ( SELECT ip FROM Chats WHERE channel IN chanID AND count = ? )`
+  } else {
+    // this post explicitly
+    queryFile = `SELECT file_path FROM Chats WHERE channel IN (
+                   SELECT id FROM Channels WHERE name = ? LIMIT 1
+                 )
+                 AND count = ? LIMIT 1`
+    queryDelete = `DELETE FROM Chats WHERE channel IN (
+                     SELECT id FROM Channels WHERE name = ? LIMIT 1
+                   )
+                   AND count = ? LIMIT 1`
+  }
+  // do we want to delete files?
+  if delChatFiles {
+    stmt, err := tx.Prepare(queryFile)
+    if err != nil {
+      log.Println("cannot prepare file selection sql query for SCOPE", scope, "POST", postID, err)
+      return
+    }
+    rows, err := stmt.Query(&channelName, postID)
+    if err != nil {
+      log.Println("cannot execute file selection sql query for global delete all", err)
+      return
+    }
+    defer rows.Close()
+    // collect results from file query
+    for rows.Next() {
+      var chat Chat
+      rows.Scan(&chat.FilePath)
+      if len(chat.FilePath) > 0 {
+        // delete files first
+        chat.DeleteFile()
+      }
+    }
+  }
+  // do we want to delete chats?
+  if delChats {
+    stmt, err := tx.Prepare(queryDelete)
+    if err != nil {
+      log.Println("cannot prepare chat delete sql query", err)
+      return
+    }
+    defer stmt.Close()
+    _, err = stmt.Exec(&channelName, &postID)
+    if err != nil {
+      log.Println("cannot execute chat delete sql query", err)
+      return
+    }
+  }
+  // commit transaction
+  tx.Commit()
+}
+
 // set a mod's attribute to a given value
 // return true if the operation succeeded otherwise false
 func (s *Database) setModAttribute(username, attribute_name, attribute_val string) bool {
@@ -142,14 +230,15 @@ func (s *Database) insertConvo(channelId int, convoName string) {
   tx.Commit()
 }
 
-func (s *Database) insertChat(channelName string, chat Chat) {
+func (s *Database) insertChat(chnl *Channel, chat Chat) {
   /* Get the ids. */
-  channelId := s.getChatChannelId(channelName)
+  channelId := s.getChatChannelId(chnl.Name)
+  // no such channel ?
   if channelId == 0 {
-    s.insertChannel(channelName)
-    channelId = s.getChatChannelId(channelName)
+    s.insertChannel(chnl.Name)
+    channelId = s.getChatChannelId(chnl.Name)
     if channelId == 0 {
-      log.Println("Error creating channel.", channelName);
+      log.Println("Error creating channel.", chnl.Name);
       return
     }
   }
@@ -173,13 +262,41 @@ func (s *Database) insertChat(channelName string, chat Chat) {
   VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
   defer stmt.Close()
   if err != nil {
-    log.Println("Error: could not access DB.", err);
+    log.Println("Error: could not prepare insert chat", err);
     return
   }
   _, err = stmt.Exec(chat.IpAddr, chat.Name, chat.Trip, chat.Country, chat.Message, chat.Count, chat.Date.UnixNano(), chat.FilePath, chat.FileName, chat.FilePreview, chat.FileSize, chat.FileDimensions, convoId, channelId)
+
+  // roll over chat
+
+  stmt, err = tx.Prepare(`SELECT file_path FROM Chats 
+                          WHERE chat_date NOT IN ( 
+                            SELECT chat_date FROM Chats ORDER BY chat_date DESC LIMIT ? ) 
+                          AND channel = ?`)
+  if err != nil {
+    log.Println("cannot prepare file_path SELECT query for chat roll over", err)
+    return
+  }
+  defer stmt.Close()
+  rows, err := stmt.Query(&chnl.Scrollback, channelId)
+  for rows.Next() {
+    var delchat Chat
+    rows.Scan(&delchat.FilePath)
+    if len(delchat.FilePath) > 0 {
+      delchat.DeleteFile()
+    }
+  }
+  
+  stmt, err = tx.Prepare(`DELETE FROM Chats WHERE chat_date NOT IN ( SELECT chat_date FROM Chats ORDER BY chat_date DESC LIMIT ? ) AND channel = ?`) 
+  if err != nil {
+    log.Println("cannot rollover chat", err)
+    return
+  }
+  defer stmt.Close()
+  _, err = stmt.Exec(chnl.Scrollback, channelId)
   tx.Commit()
   if err != nil {
-    log.Println("Error: could not insert into DB.", err);
+    log.Println("Error: could not insert chat", err);
     return
   }
 }
