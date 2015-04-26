@@ -3,9 +3,9 @@ package main
 import (
   "bytes"
   "github.com/gorilla/websocket"
-  //"log"
+  "log"
   //"strings"
-  //"io"
+  "io/ioutil"
   "time"
 )
 
@@ -49,11 +49,12 @@ func (c *Connection) reader() {
       //log.Println("got message", mtype);
     }
     if c.user.SolvedCaptcha {
-      var buff bytes.Buffer
-      buff.ReadFrom(r)
-      d := buff.Bytes()
-      buff.Reset()
-      m := Message{data: d, conn: c}
+      d, err := ioutil.ReadAll(r)
+      if err != nil {
+        log.Println("error reading websocket message", err)
+        break
+      }
+      m := Message{data: d[:], conn: c}
       d = nil
       h.broadcast <- m
     } else {
