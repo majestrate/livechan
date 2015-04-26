@@ -134,6 +134,7 @@ func (h *Hub) run() {
           chnl.Connections[m.conn] = time.Now()
           // create our chat and send the result down the channel's recv chan
           createChat(m.reader, m.conn, chnl.Send)
+          m = nil
         }
       }
       m = nil
