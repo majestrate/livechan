@@ -2,7 +2,6 @@ package main
 
 import (
   "time"
-  "log"
   "strconv"
 )
 
@@ -118,8 +117,6 @@ func (self *Channel) OnPart(conn *Connection) {
     for c := range self.Connections {
       c.send <- jsondata
     }
-  } else {
-    log.Println("cannot close non existant user?")
   }
 }
 

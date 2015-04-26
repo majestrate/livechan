@@ -74,9 +74,9 @@ type OutChat struct {
 // parse incoming data
 func createChat(data []byte, conn *Connection) *Chat {
   c := new(Chat)
-  inchat := new(InChat)
+  var inchat InChat
   // un marshal json
-  err := json.Unmarshal(data, inchat)
+  err := json.Unmarshal(data, &inchat)
   if err != nil {
     log.Println(conn.ipAddr, "error creating chat: ", err)
     return nil
@@ -87,7 +87,7 @@ func createChat(data []byte, conn *Connection) *Chat {
     c.FilePath = genUploadFilename(inchat.FileName)
     c.FileName = inchat.FileName
     log.Println(conn.ipAddr, "uploaded file", c.FilePath)
-    handleUpload(inchat, c.FilePath);
+    handleUpload(&inchat, c.FilePath);
   }
   
   // trim name and set to anonymous if unspecified
