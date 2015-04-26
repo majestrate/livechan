@@ -8,7 +8,7 @@ import (
   "strings"
   "os"
   "log"
-  "bytes"
+  //"bytes"
 )
 
 // incoming chat request
@@ -74,17 +74,13 @@ type OutChat struct {
 
 // parse incoming data into Chat
 // send chat down channel
-func createChat(data []byte, conn *Connection, chnl chan *Chat) {
+func createChat(reader io.Reader, conn *Connection, chnl chan *Chat) {
   inchat := new(InChat)
   // un marshal json
-  var inbuf bytes.Buffer
-  inbuf.Write(data)
-  dec := json.NewDecoder(&inbuf)
+  dec := json.NewDecoder(reader)
   err := dec.Decode(inchat)
   // zero out decoder and input
   dec = nil
-  data = nil
-  inbuf.Reset()
   if err != nil {
     inchat = nil
     log.Println(conn.ipAddr, "error creating chat: ", err)

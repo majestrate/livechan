@@ -51,8 +51,7 @@ func (c *Connection) reader() {
     if c.user.SolvedCaptcha {
       var buff bytes.Buffer
       io.Copy(&buff, r)
-      m := &Message{data: buff.Bytes(), conn: c}
-      buff.Reset()
+      m := &Message{reader: &buff, conn: c}
       h.broadcast <- m
     } else {
       var chat OutChat
