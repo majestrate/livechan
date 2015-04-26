@@ -1,6 +1,7 @@
 package main
 
 import (
+  "bytes"
   "github.com/gorilla/websocket"
   //"log"
   //"strings"
@@ -53,7 +54,9 @@ func (c *Connection) reader() {
     } else {
       var chat OutChat
       chat.Error = "Please fill in the captcha"
-      c.send <- chat.createJSON()
+      var buff bytes.Buffer
+      chat.createJSON(&buff)
+      c.send <- buff.Bytes()
     }
   }
 }

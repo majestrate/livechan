@@ -4,6 +4,7 @@ import (
   "encoding/json"
   "path/filepath"
   "time"
+  "io"
   "strconv"
   "strings"
   "os"
@@ -129,16 +130,17 @@ func (chat *Chat) genCapcode(conn *Connection) string {
 }
 
 // create json object as bytes
-func (chat *OutChat) createJSON() []byte {
-  j, err := json.Marshal(chat)
+func (chat *OutChat) createJSON(w io.Writer) {
+  enc := json.NewEncoder(w)
+  err := enc.Encode(chat)
   if err != nil {
-    log.Println("error: ", err)
+    log.Println("error creating json: ", err)
   }
-  return j
 }
 
 // turn into outchat and create json as bytes
-func (chat *Chat) createJSON(conn *Connection) []byte{
+// put it into a writable
+func (chat *Chat) createJSON(conn *Connection, w io.Writer){
   outChat := OutChat{
     Name: chat.Name,
     Message: chat.Message,
@@ -148,11 +150,12 @@ func (chat *Chat) createJSON(conn *Connection) []byte{
     FilePath: chat.FilePath,
     Capcode: chat.genCapcode(conn),
   }
-  return outChat.createJSON()
+  outChat.createJSON(w)
 }
 
 // create a json array of outchats for an array of chats for a given connection
-func createJSONs(chats []Chat, conn * Connection) []byte{
+// write result to a writer
+func createJSONs(chats []Chat, conn * Connection, w io.Writer) {
   var outChats []OutChat
   for _, chat := range chats {
     outChat := OutChat{
@@ -166,11 +169,11 @@ func createJSONs(chats []Chat, conn * Connection) []byte{
     }
     outChats = append(outChats, outChat)
   }
-  j, err := json.Marshal(outChats)
+  enc := json.NewEncoder(w)
+  err := enc.Encode(outChats)
   if err != nil {
     log.Println("error marshalling json: ", err)
   }
-  return j
 }
 
 

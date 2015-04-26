@@ -1,6 +1,7 @@
 package main
 
 import (
+  "bytes"
   "time"
   "strconv"
 )
@@ -90,11 +91,14 @@ func (self *Channel) OnBroadcast(msg *Message) {
   // check if we can broadcast to the channel
   // potentially check for +m
   if (chat.canBroadcast(msg.conn)) {
+    var buff bytes.Buffer
     for con := range self.Connections {
+      buff.Reset()
+      chat.createJSON(con, &buff)
       // for each connection send a chat message
       select {
         // send it 
-      case con.send <- chat.createJSON(con):
+      case con.send <- buff.Bytes():
         // if we can't send it unregister the chat
       default:
         // TODO is this okay?
@@ -112,11 +116,12 @@ func (self *Channel) OnPart(conn *Connection) {
     // anounce user part
     
     var chat OutChat
+    var buff bytes.Buffer
     chat.UserCount = len(self.Connections)
-    jsondata := chat.createJSON()
+    chat.createJSON(&buff)
     // tell everyone in channel the user count  decremented
     for c := range self.Connections {
-      c.send <- jsondata
+      c.send <- buff.Bytes()
     }
   }
 }
@@ -124,10 +129,11 @@ func (self *Channel) OnPart(conn *Connection) {
 func (self *Channel) OnJoin(conn *Connection) {
   // anounce new user join
   var chat OutChat
+  var buff bytes.Buffer
   chat.UserCount = len(self.Connections)
-  jsondata := chat.createJSON()
+  chat.createJSON(&buff)
   // send to everyone in this channel
   for ch := range self.Connections {
-    ch.send <- jsondata
+    ch.send <- buff.Bytes()
   }
 }

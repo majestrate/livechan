@@ -1,6 +1,7 @@
 package main
 
 import (
+  "bytes"
   "time"
   "fmt"
   "log"
@@ -79,8 +80,9 @@ func (h *Hub) run() {
       // put user presence
       chnl.Connections[con] = time.Unix(0,0)
       // send scollback
-      posts := createJSONs(storage.getChats(con.channelName, "General", chnl.Scrollback), con)
-      con.send <- posts
+      var buff bytes.Buffer
+      createJSONs(storage.getChats(con.channelName, "General", chnl.Scrollback), con, &buff)
+      con.send <- buff.Bytes()
 
       // call channel OnJoin
       chnl.OnJoin(con)
@@ -105,8 +107,9 @@ func (h *Hub) run() {
         chat.Error = "You have been banned from Livechan: "
         chat.Error += storage.getGlobalBanReason(ipaddr)
         // send them the ban notice
-        data := chat.createJSON()
-        m.conn.send <- data
+        var buff bytes.Buffer
+        chat.createJSON(&buff)
+        m.conn.send <- buff.Bytes()
       } else {
         h.channels[chName].OnBroadcast(&m)
       }
