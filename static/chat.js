@@ -317,9 +317,12 @@ Chat.prototype.sendInput = function(event) {
       });
       inputElem.file.value = "";
     });
+    //TODO: don't clear this when doing captcha
     inputElem.message.value = '';
     inputElem.submit.disabled = true;
-    var i = 4;
+    var i = parseInt(self.options.cooldown);
+    // fallback
+    if ( i == NaN ) { i = 4; } 
     inputElem.submit.setAttribute('value', i);
     var countDown = setInterval(function(){
       inputElem.submit.setAttribute('value', --i);
@@ -405,14 +408,14 @@ Chat.prototype.initOutput = function() {
   var getConnection = setInterval(function() {
     console.log("Attempting to reconnect.");
     self.notify("disconnected");
-        
+    
     if (initWebSocket(connection.channel, connection) !== null
         && connection.ws !== null) {
-        console.log("Success!");
-        self.notify("connected to livechan");
-        clearInterval(getConnection);
-      }
-    }, 1000);
+      console.log("Success!");
+      self.notify("connected to livechan");
+      clearInterval(getConnection);
+    }
+  }, 1000);
   });
 }
 
@@ -427,6 +430,18 @@ Chat.prototype.updateUserCount = function(count) {
  */
 Chat.prototype.scroll = function() {
   this.chatElems.output.scrollTop = this.chatElems.output.scrollHeight;
+}
+
+/** @brief roll over old posts, remove them from ui */
+Chat.prototype.rollover = function() {
+  var self = this;
+  var chatSize = self.options.scrollback || 50;
+  var outputElem = self.chatElems.output;
+  // while it's too big
+  while(outputElem.childNodes.length > chatSize) {
+    // remove top child
+    outputElem.removeChild(outputElem.childNodes[0]);
+  }
 }
 
 /* @brief Inserts the chat into the DOM, overwriting if need be.
@@ -444,7 +459,10 @@ Chat.prototype.insertChat = function(chat, number) {
   var self = this;
   var outputElem = this.chatElems.output;
   outputElem.appendChild(chat);
+  // scroll to end
   self.scroll();
+  // rollover old posts
+  self.rollover();
 }
 
 /* @brief Generates a chat div.

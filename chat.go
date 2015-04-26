@@ -4,6 +4,7 @@ import (
   "encoding/json"
   "path/filepath"
   "time"
+  "strconv"
   "strings"
   "os"
   "log"
@@ -184,9 +185,19 @@ func (chat *Chat) canBroadcast(conn *Connection) bool{
   chnl := h.channels[conn.channelName]
   // time based rate limit
   t := chnl.Connections[conn]
-  // limit minimum broadcast time to 4 seconds
+
+  var cooldown uint64
+  cooldown = 4
+  // get cooldown setting
+  // TODO: use channel specific settings
+  if cfg.Has("cooldown") {
+    _cooldown, err := strconv.ParseUint(cfg["cooldown"], 10, 64)
+    if err == nil {
+      cooldown = _cooldown
+    }
+  }
   // don't broadcast
-  if time.Now().Sub(t).Seconds() < 4 {
+  if uint64(time.Now().Sub(t).Seconds()) < cooldown {
     return false
   }
   // increment chat count and allow broadcast

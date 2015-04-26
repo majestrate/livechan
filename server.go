@@ -31,6 +31,7 @@ func main() {
   go h.run()
   
   // set up http server handlers
+  http.HandleFunc("/options", optionsServer)
   http.HandleFunc("/channels", channelServer)
   http.HandleFunc("/convos/", convoServer)
   http.HandleFunc("/", htmlServer)

@@ -3,6 +3,7 @@ package main
 import (
   "time"
   "log"
+  "strconv"
 )
 
 const (
@@ -66,7 +67,18 @@ type Channel struct {
 func NewChannel(name string) *Channel {
   chnl := new(Channel)
   chnl.Name = name
-  chnl.Scrollback = 50
+  var fallbackScrollback uint64
+  fallbackScrollback = 50
+  // if we have set a scrollback amount in our config set it here
+  if cfg.Has("scrollback") {
+    var err error
+    chnl.Scrollback, err = strconv.ParseUint(cfg["scrollback"], 10, 64)
+    if err != nil {
+      chnl.Scrollback = fallbackScrollback
+    }
+  } else {
+    chnl.Scrollback = fallbackScrollback
+  }
   chnl.Convos = make([]string, 10)
   chnl.Connections = make(map[*Connection]time.Time)
   return chnl

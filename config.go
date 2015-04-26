@@ -29,6 +29,11 @@ func LoadConfig(fname string) LivechanConfig {
   return livechan
 }
 
+// get publicly exposable server options
+func (self LivechanConfig) Options() []string {
+  return []string{"prefix", "scrollback", "cooldown"}
+}
+
 func (self LivechanConfig) BanTor() bool {
   return strings.ToUpper(self["ban_tor"]) == "YES"
 }

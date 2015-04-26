@@ -52,25 +52,40 @@ function loadCSS(themeName, replace, callback) {
 
 /* Initialization functions called here. */
 window.addEventListener('load', function() {
-  var prefix = "/";
-  var chatName = location.pathname.slice(prefix.length);
-  chatName = chatName ? chatName : 'General';
   var link = loadCSS(loadDefault('theme'));
-  var options = {
-    prefix: prefix,
-    customCommands: [
-      [/s(witch)? (.*)/, function(m) {
-        window.location.href = m[2];
-      }],
-      [/t(heme)? (.*)/, function(m) {
-        var chat = this;
-        link = loadCSS(m[2], link, function(){
-          chat.scroll();
-        });
-      }]
-    ]
+  var customCommands = [
+    [/s(witch)? (.*)/, function(m) {
+      window.location.href = m[2];
+    }],
+    [/t(heme)? (.*)/, function(m) {
+      var chat = this;
+      link = loadCSS(m[2], link, function(){
+        chat.scroll();
+      });
+    }]
+  ];
+  // obtain our chat's options via ajax
+  // create chat on success
+  // TODO: handle fail
+  var ajax = new XMLHttpRequest();
+  ajax.onreadystatechange = function() {
+    if (ajax.status == 200 && ajax.readyState == XMLHttpRequest.DONE) {
+      var options = {};
+      // try getting options
+      try {
+        var txt = ajax.responseText;
+        console.log(txt);
+        options = JSON.parse(txt);
+      } catch (e) {console.log("failed to get options from server "+e);}
+      options.customCommands = customCommands;
+      var prefix = options.prefix || "/";
+      var chatName = location.pathname.slice(prefix.length);
+      chatName = chatName ? chatName : 'General';
+      var c = new Chat(document.getElementById('chat'), chatName, options);    
+    }
   };
-  var c = new Chat(document.getElementById('chat'), chatName, options);    
+  ajax.open("GET", "/options");
+  ajax.send();
 });
 
 

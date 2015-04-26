@@ -8,6 +8,7 @@ import (
   "strings"
   "log"
   "fmt"
+  "io"
 )
 
 // websocket upgrader
@@ -228,9 +229,37 @@ func captchaServer(w http.ResponseWriter, req *http.Request) {
       log.Println("failed capcha for", addr)
     }
     // write response
-    response := fmt.Sprintf("{\"solved\" : %d }", responseCode)
-    fmt.Fprintf(w, response)
+    fmt.Fprintf(w, "{\"solved\" : %d }", responseCode)
   }
+}
+
+// get livechan chat options
+func optionsServer(w http.ResponseWriter, req *http.Request) {
+  // do not allow anything but GET method
+  if req.Method != "GET" {
+    http.Error(w, "Method Not Allowed", 405)
+    return
+  }
+  // begin writing json response
+  io.WriteString(w, "{ ")
+
+  opts := cfg.Options()
+  // for each publicly exposable server option
+  for idx := range(opts) {
+    // write option out with value
+    key := opts[idx]
+    // only send option if the config has it
+    if cfg.Has(key) {
+      fmt.Fprintf(w, " \"%s\" : \"%s\", ", key, cfg[key])
+    }
+  }
+
+  // terminate dict with empty key/value
+  io.WriteString(w, "  \"\" : \"\" ")
+  // end json response
+  io.WriteString(w, "}")
+
+  
 }
 
 // serve static content

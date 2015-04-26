@@ -105,7 +105,7 @@ func (s *Database) ProcessModEvent(scope, action int, channelName string, postID
     queryDelete = `DELETE FROM Chats WHERE channel IN (
                      SELECT id FROM Channels WHERE name = ? LIMIT 1
                    )
-                   AND count = ? LIMIT 1`
+                   AND count = ?`
   }
   // do we want to delete files?
   if delChatFiles {
