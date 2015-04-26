@@ -4,7 +4,7 @@ import (
   "bytes"
   "time"
   "fmt"
-  //"io"
+  "io"
   "log"
 )
 
@@ -12,7 +12,7 @@ import (
 // raw json message
 type Message struct {
   // data reader for message body
-  data []byte
+  reader io.Reader
   conn *Connection
 }
 
@@ -133,7 +133,7 @@ func (h *Hub) run() {
           chnl.Connections[m.conn] = time.Now()
           // create our chat and send the result down the channel's recv chan
           // fork it too
-          go createChat(m.data[:], m.conn, chnl.Send)
+          go createChat(m.reader, m.conn, chnl.Send)
         }
       }
       m = nil

@@ -41,14 +41,14 @@ func (c *Connection) reader() {
     return nil
   })
   for {
-    _, d, err := c.ws.ReadMessage()
+    _, reader, err := c.ws.NextReader()
     if err != nil {
       break
     } else {
       //log.Println("got message", mtype);
     }
     if c.user.SolvedCaptcha {
-      m := &Message{data: d[:], conn: c}
+      m := &Message{reader: reader, conn: c}
       h.broadcast <- m
     } else {
       var chat OutChat
@@ -57,7 +57,6 @@ func (c *Connection) reader() {
       chat.createJSON(&buff)
       c.send <- buff.Bytes()
     }
-    d = nil
   }
 }
 
