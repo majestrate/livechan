@@ -73,10 +73,11 @@ type OutChat struct {
 }
 
 // parse incoming data
-func createChat(data []byte, conn *Connection, c *Chat) bool {
+func createChat(reader io.Reader, conn *Connection, c *Chat) bool {
   var inchat InChat
   // un marshal json
-  err := json.Unmarshal(data, &inchat)
+  dec := json.NewDecoder(reader)
+  err := dec.Decode(&inchat)
   if err != nil {
     log.Println(conn.ipAddr, "error creating chat: ", err)
     return false

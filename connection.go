@@ -49,8 +49,10 @@ func (c *Connection) reader() {
     }
     if c.user.SolvedCaptcha {
       // user has solved captcha
-      m := Message{data:d, conn:c}
-      h.broadcast <- m
+      var buff bytes.Buffer
+      buff.Write(d)
+      m := Message{reader: &buff, conn:c}
+      h.broadcast <- &m
     } else {
       var chat OutChat
       chat.Error = "Please fill in the captcha"

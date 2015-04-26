@@ -87,7 +87,7 @@ func NewChannel(name string) *Channel {
 func (self *Channel) OnBroadcast(msg *Message) {
   // if they aren't banned create the chat message
   var chat Chat
-  createChat(msg.data, msg.conn, &chat)
+  createChat(msg.reader, msg.conn, &chat)
   // check if we can broadcast to the channel
   // potentially check for +m
   if (chat.canBroadcast(msg.conn)) {

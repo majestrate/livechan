@@ -4,13 +4,15 @@ import (
   "bytes"
   "time"
   "fmt"
+  "io"
   "log"
 )
 
 
 // raw json message
 type Message struct {
-  data []byte
+  // reader for reading the data
+  reader io.Reader
   conn *Connection
 }
 
@@ -21,7 +23,7 @@ type Hub struct {
   channels map[string]*Channel
 
   // regular channel message events
-  broadcast chan Message
+  broadcast chan *Message
 
   // moderation based events
   mod chan ModEvent
@@ -38,7 +40,7 @@ type Hub struct {
 
 // todo: shouldn't this be made in main?
 var h = Hub {
-  broadcast: make(chan Message),
+  broadcast: make(chan *Message),
   mod: make(chan ModEvent),
   captcha: make(chan string),
   register: make(chan *Connection),
@@ -111,7 +113,7 @@ func (h *Hub) run() {
         chat.createJSON(&buff)
         m.conn.send <- buff.Bytes()
       } else {
-        h.channels[chName].OnBroadcast(&m)
+        h.channels[chName].OnBroadcast(m)
       }
     }
   }

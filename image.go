@@ -10,6 +10,7 @@ import (
 // determine if this file is an image
 func fileIsImage(fname string) bool {
   // TODO: use for loop
+  fname = strings.ToLower(fname)
   if strings.HasSuffix(fname, ".png") {
     return true
   }
