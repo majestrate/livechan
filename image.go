@@ -39,7 +39,7 @@ func processImage(infname, outfname, thumbfname string, data []byte) error {
     return err
   }
   // write out original file
-  return ioutil.WriteFile(outfname, data, 0666)
+  return ioutil.WriteFile(outfname, data, 0644)
 }
 
 // generate thumbanail
