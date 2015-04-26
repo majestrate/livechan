@@ -41,14 +41,14 @@ func (c *Connection) reader() {
     return nil
   })
   for {
-    _, reader, err := c.ws.NextReader()
+    _, r, err := c.ws.NextReader()
     if err != nil {
       break
     } else {
       //log.Println("got message", mtype);
     }
     if c.user.SolvedCaptcha {
-      m := &Message{reader: reader, conn: c}
+      m := &Message{reader: r, conn: c}
       h.broadcast <- m
     } else {
       var chat OutChat
