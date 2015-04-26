@@ -5,7 +5,7 @@ import (
   "github.com/gorilla/websocket"
   //"log"
   //"strings"
-  "io"
+  //"io"
   "time"
 )
 
@@ -50,8 +50,11 @@ func (c *Connection) reader() {
     }
     if c.user.SolvedCaptcha {
       var buff bytes.Buffer
-      io.Copy(&buff, r)
-      m := &Message{reader: &buff, conn: c}
+      buff.ReadFrom(r)
+      d := buff.Bytes()
+      buff.Reset()
+      m := Message{data: d, conn: c}
+      d = nil
       h.broadcast <- m
     } else {
       var chat OutChat

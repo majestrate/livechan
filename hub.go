@@ -4,7 +4,7 @@ import (
   "bytes"
   "time"
   "fmt"
-  "io"
+  //"io"
   "log"
 )
 
@@ -12,8 +12,8 @@ import (
 // raw json message
 type Message struct {
   // data reader for message body
-  reader io.Reader
-  //data []byte
+  //reader io.Reader
+  data []byte
   conn *Connection
 }
 
@@ -24,7 +24,7 @@ type Hub struct {
   channels map[string]*Channel
 
   // incoming regular channel message events
-  broadcast chan *Message
+  broadcast chan Message
 
   // moderation based events
   mod chan ModEvent
@@ -41,7 +41,7 @@ type Hub struct {
 
 // todo: shouldn't this be made in main?
 var h = Hub {
-  broadcast: make(chan *Message),
+  broadcast: make(chan Message),
   mod: make(chan ModEvent),
   captcha: make(chan string),
   register: make(chan *Connection),
@@ -133,11 +133,9 @@ func (h *Hub) run() {
           // set last posted to now
           chnl.Connections[m.conn] = time.Now()
           // create our chat and send the result down the channel's recv chan
-          createChat(m.reader, m.conn, chnl.Send)
-          m = nil
+          go createChat(m.data, m.conn, chnl.Send)
         }
       }
-      m = nil
     }
   }
 }
