@@ -1,6 +1,8 @@
 package main
 
 import (
+  "bytes"
+  "io"
   "strings"
   "time"
   "fmt"
@@ -27,27 +29,27 @@ func genUploadFilename(filename string) string {
 // handle file upload
 func handleUpload(chat *InChat, fname string) {
 
+  var inbuff, outbuff bytes.Buffer
+  io.WriteString(&inbuff, chat.File)
+  dec := base64.NewDecoder(base64.StdEncoding, &inbuff)
   // get the path for the original image
   osfname := filepath.Join("upload", fname)
   // get the path for the thumbnail
   thumbnail := filepath.Join("thumbs", fname)
-
-  // decode the upload data
-  data, err := base64.StdEncoding.DecodeString(chat.File)
+  _, err := io.Copy(&outbuff, dec)
   if err != nil {
-    log.Println("error converting base64 upload", err)
+    log.Println("upload fail in decoding base64", err)
     return
   }
-
   // generate thumbail
   // write it out
-  err = generateThumbnail(fname, thumbnail, data)
+  err = generateThumbnail(fname, thumbnail, outbuff.Bytes())
   if err != nil {
     log.Println("failed to generate thumbnail", err)
     return
   }
   // write out original file
-  err = ioutil.WriteFile(osfname, data, 0644)
+  err = ioutil.WriteFile(osfname, outbuff.Bytes(), 0644)
   if err != nil {
     log.Println("failed to save upload", err);
   }
