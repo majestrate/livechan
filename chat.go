@@ -72,14 +72,13 @@ type OutChat struct {
 }
 
 // parse incoming data
-func createChat(data []byte, conn *Connection) *Chat {
-  c := new(Chat)
+func createChat(data []byte, conn *Connection, c *Chat) bool {
   var inchat InChat
   // un marshal json
   err := json.Unmarshal(data, &inchat)
   if err != nil {
     log.Println(conn.ipAddr, "error creating chat: ", err)
-    return nil
+    return false
   }
   // if there is a file present handle upload
   if len(inchat.File) > 0 && len(inchat.FileName) > 0 {
@@ -109,7 +108,7 @@ func createChat(data []byte, conn *Connection) *Chat {
   // extract IP address
   // TODO: assumes IPv4
   c.IpAddr = ExtractIpv4(conn.ipAddr);
-  return c
+  return true
 }
 
 

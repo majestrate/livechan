@@ -83,9 +83,10 @@ func NewChannel(name string) *Channel {
   return chnl
 }
 
-func (self *Channel) OnBroadcast(msg Message) {
+func (self *Channel) OnBroadcast(msg *Message) {
   // if they aren't banned create the chat message
-  chat := createChat(msg.data, msg.conn)
+  var chat Chat
+  createChat(msg.data, msg.conn, &chat)
   // check if we can broadcast to the channel
   // potentially check for +m
   if (chat.canBroadcast(msg.conn)) {
@@ -100,7 +101,7 @@ func (self *Channel) OnBroadcast(msg Message) {
         h.unregister <- con
       }
     }
-    storage.insertChat(self, *chat)
+    storage.insertChat(self, chat)
   } else {} // TODO: should we really do nothing when the channel can't broadcast?
 }
 

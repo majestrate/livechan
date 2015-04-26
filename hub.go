@@ -108,7 +108,7 @@ func (h *Hub) run() {
         data := chat.createJSON()
         m.conn.send <- data
       } else {
-        h.channels[chName].OnBroadcast(m)
+        h.channels[chName].OnBroadcast(&m)
       }
     }
   }
