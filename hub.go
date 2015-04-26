@@ -132,8 +132,12 @@ func (h *Hub) run() {
           // set last posted to now
           chnl.Connections[m.conn] = time.Now()
           // create our chat and send the result down the channel's recv chan
-          // fork it too
-          go createChat(m.reader, m.conn, chnl.Send)
+          var buff bytes.Buffer
+          io.Copy(&buff,m.reader)
+          d := buff.Bytes()
+          createChat(d, m.conn, chnl.Send)
+          d = nil
+          buff.Reset()
         }
       }
       m = nil
