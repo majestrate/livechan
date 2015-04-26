@@ -48,9 +48,8 @@ func (c *Connection) reader() {
       //log.Println("got message", mtype);
     }
     if c.user.SolvedCaptcha {
-      m := &Message{data: d, conn: c}
+      m := &Message{data: d[:], conn: c}
       h.broadcast <- m
-
     } else {
       var chat OutChat
       chat.Error = "Please fill in the captcha"
