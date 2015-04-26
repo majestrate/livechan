@@ -48,11 +48,9 @@ func (c *Connection) reader() {
       //log.Println("got message", mtype);
     }
     if c.user.SolvedCaptcha {
-      // user has solved captcha
-      var buff bytes.Buffer
-      buff.Write(d)
-      m := Message{reader: &buff, conn:c}
-      h.broadcast <- &m
+      m := &Message{data: d, conn: c}
+      h.broadcast <- m
+
     } else {
       var chat OutChat
       chat.Error = "Please fill in the captcha"
@@ -60,6 +58,7 @@ func (c *Connection) reader() {
       chat.createJSON(&buff)
       c.send <- buff.Bytes()
     }
+    d = nil
   }
 }
 

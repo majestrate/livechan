@@ -5,6 +5,7 @@ import (
   "github.com/dchest/captcha"
   "github.com/gographics/imagick/imagick"
   "log"
+  _ "net/http/pprof"
 )
 
 var cfg = LoadConfig("livechan.ini")

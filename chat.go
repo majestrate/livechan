@@ -1,11 +1,11 @@
 package main
 
 import (
+  "bytes"
   "encoding/json"
   "path/filepath"
   "time"
   "io"
-  "strconv"
   "strings"
   "os"
   "log"
@@ -72,24 +72,33 @@ type OutChat struct {
   Error string
 }
 
-// parse incoming data
-func createChat(reader io.Reader, conn *Connection, c *Chat) bool {
-  var inchat InChat
+// parse incoming data into Chat
+// send chat down channel
+func createChat(data []byte, conn *Connection, chnl chan *Chat) {
+  inchat := new(InChat)
   // un marshal json
-  dec := json.NewDecoder(reader)
-  err := dec.Decode(&inchat)
+  var buff bytes.Buffer
+  buff.Write(data)
+  dec := json.NewDecoder(&buff)
+  err := dec.Decode(inchat)
+  // zero out decoder and input
+  data = nil
+  dec = nil
+  buff.Reset()
   if err != nil {
+    inchat = nil
     log.Println(conn.ipAddr, "error creating chat: ", err)
-    return false
+    return
   }
-  // if there is a file present handle upload
-  if len(inchat.File) > 0 && len(inchat.FileName) > 0 {
-    // TODO FilePreview, FileDimensions
-    c.FilePath = genUploadFilename(inchat.FileName)
-    c.FileName = inchat.FileName
-    log.Println(conn.ipAddr, "uploaded file", c.FilePath)
-    handleUpload(&inchat, c.FilePath);
+  
+  if inchat.Empty() {
+    inchat = nil
+    log.Println("empty post, dropping")
+    return
   }
+  
+  
+  c := new(Chat)
   
   // trim name and set to anonymous if unspecified
   c.Name = strings.TrimSpace(inchat.Name)
@@ -109,8 +118,21 @@ func createChat(reader io.Reader, conn *Connection, c *Chat) bool {
   c.Date = time.Now().UTC()
   // extract IP address
   // TODO: assumes IPv4
-  c.IpAddr = ExtractIpv4(conn.ipAddr);
-  return true
+  c.IpAddr = ExtractIpv4(conn.ipAddr)
+
+  // if there is a file present handle upload
+  if len(inchat.File) > 0 && len(inchat.FileName) > 0 {
+    // TODO FilePreview, FileDimensions
+    c.FilePath = genUploadFilename(inchat.FileName)
+    c.FileName = inchat.FileName
+    log.Println(conn.ipAddr, "uploaded file", c.FilePath)
+    handleUpload(inchat, c.FilePath)
+  }
+  // gc
+  inchat = nil
+  
+  // send it
+  chnl <- c
 }
 
 
@@ -121,42 +143,36 @@ func (chat *Chat) DeleteFile() {
   os.Remove(filepath.Join("thumbs", chat.FilePath))
 }
 
-// generate capcode
-func (chat *Chat) genCapcode(conn *Connection) string {
-  cap := ""
-  if ExtractIpv4(conn.ipAddr) == chat.IpAddr {
-    cap = "(You)"
-  }
-  return cap
-}
-
 // create json object as bytes
+// write to writer
 func (chat *OutChat) createJSON(w io.Writer) {
   enc := json.NewEncoder(w)
   err := enc.Encode(chat)
   if err != nil {
     log.Println("error creating json: ", err)
   }
+  enc = nil
 }
 
-// turn into outchat and create json as bytes
-// put it into a writable
-func (chat *Chat) createJSON(conn *Connection, w io.Writer){
-  outChat := OutChat{
+// turn into outchat 
+func (chat *Chat) toOutChat() OutChat{
+  return OutChat{
     Name: chat.Name,
     Message: chat.Message,
     Date: chat.Date,
     Count: chat.Count,
     Convo: chat.Convo,
     FilePath: chat.FilePath,
-    Capcode: chat.genCapcode(conn),
   }
-  outChat.createJSON(w)
+}
+
+func (self *InChat) Empty() bool {
+  return len(self.Message) == 0 && len(self.File) == 0
 }
 
 // create a json array of outchats for an array of chats for a given connection
 // write result to a writer
-func createJSONs(chats []Chat, conn * Connection, w io.Writer) {
+func createJSONs(chats []Chat, w io.Writer) {
   var outChats []OutChat
   for _, chat := range chats {
     outChat := OutChat{
@@ -166,7 +182,7 @@ func createJSONs(chats []Chat, conn * Connection, w io.Writer) {
       Count: chat.Count,
       Convo: chat.Convo,
       FilePath: chat.FilePath,
-      Capcode: chat.genCapcode(conn),
+      //Capcode: chat.genCapcode(conn),
     }
     outChats = append(outChats, outChat)
   }
@@ -177,35 +193,3 @@ func createJSONs(chats []Chat, conn * Connection, w io.Writer) {
   }
 }
 
-
-// check if this connection can broadcast
-// TODO: is this the best way?
-func (chat *Chat) canBroadcast(conn *Connection) bool{
-  // no message or file? don't broadcast.
-  if len(chat.Message) == 0 && len(chat.FilePath) == 0 {
-    return false
-  }
-  chnl := h.channels[conn.channelName]
-  // time based rate limit
-  t := chnl.Connections[conn]
-
-  var cooldown uint64
-  cooldown = 4
-  // get cooldown setting
-  // TODO: use channel specific settings
-  if cfg.Has("cooldown") {
-    _cooldown, err := strconv.ParseUint(cfg["cooldown"], 10, 64)
-    if err == nil {
-      cooldown = _cooldown
-    }
-  }
-  // don't broadcast
-  if uint64(time.Now().Sub(t).Seconds()) < cooldown {
-    return false
-  }
-  // increment chat count and allow broadcast
-  // TODO: move elsewhere?
-  chnl.Connections[conn] = time.Now()
-  chat.Count = storage.getCount(conn.channelName) + 1
-  return true
-}

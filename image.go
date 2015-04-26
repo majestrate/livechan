@@ -4,6 +4,7 @@ import (
   "errors"
   "github.com/gographics/imagick/imagick"
   "log"
+  "io/ioutil"
   "strings"
 )
 
@@ -29,8 +30,20 @@ func fileIsImage(fname string) bool {
   return false
 }
 
+// process image from upload
+func processImage(infname, outfname, thumbfname string, data []byte) error {
+  
+  err := generateThumbnail(infname, thumbfname, data)
+  if err != nil {
+    log.Println("failed to generate thumbnail and write file", err)
+    return err
+  }
+  // write out original file
+  return ioutil.WriteFile(outfname, data, 0660)
+}
+
 // generate thumbanail
-func generateThumbnail(inFname, outFname string, data []byte) error {
+func generateThumbnail(inFname, outFname string, data []byte ) error {
   // TODO: accept video, pdf, audio etc
   // is this an image?
   if fileIsImage(inFname) {
@@ -51,7 +64,7 @@ func generateImageThumbnail(inFname, outFname string, data []byte) error {
   // initialize new thumbnailer
   wand := imagick.NewMagickWand()
   defer wand.Destroy()
-  
+
   // read the image
   err = wand.ReadImageBlob(data)
   if err != nil {

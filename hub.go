@@ -4,15 +4,15 @@ import (
   "bytes"
   "time"
   "fmt"
-  "io"
+  //"io"
   "log"
 )
 
 
 // raw json message
 type Message struct {
-  // reader for reading the data
-  reader io.Reader
+  // data reader for message body
+  data []byte
   conn *Connection
 }
 
@@ -22,7 +22,7 @@ type Hub struct {
   // channel specific broadcast 
   channels map[string]*Channel
 
-  // regular channel message events
+  // incoming regular channel message events
   broadcast chan *Message
 
   // moderation based events
@@ -48,6 +48,12 @@ var h = Hub {
   channels: make(map[string]*Channel),
 }
 
+func (h *Hub) RemoveChannel(chnl *Channel) {
+  // remove it
+  log.Println("remove channel", chnl.Name)
+  delete(h.channels, chnl.Name)
+}
+
 // hub mainloop
 // TODO: locking?
 func (h *Hub) run() {
@@ -68,6 +74,7 @@ func (h *Hub) run() {
           if conn.user.Session == sid {
             // mark underlying user object as solved captcha
             conn.user.MarkSolvedCaptcha()
+            log.Println("captcha solved")
           }
         }
       }
@@ -76,16 +83,20 @@ func (h *Hub) run() {
       // channel has no users?
       if (h.channels[con.channelName] == nil) {
         // allocate channel
-        h.channels[con.channelName] = NewChannel(con.channelName)
+        ch := NewChannel(con.channelName)
+        // put it into the hub
+        h.channels[con.channelName] = ch
+        // run the channel pumper
+        go ch.Run()
       }
       chnl := h.channels[con.channelName]
       // put user presence
       chnl.Connections[con] = time.Unix(0,0)
       // send scollback
       var buff bytes.Buffer
-      createJSONs(storage.getChats(con.channelName, "General", chnl.Scrollback), con, &buff)
+      createJSONs(storage.getChats(con.channelName, "General", chnl.Scrollback), &buff)
       con.send <- buff.Bytes()
-
+      buff.Reset()
       // call channel OnJoin
       chnl.OnJoin(con)
       
@@ -112,9 +123,20 @@ func (h *Hub) run() {
         var buff bytes.Buffer
         chat.createJSON(&buff)
         m.conn.send <- buff.Bytes()
+        buff.Reset()
       } else {
-        h.channels[chName].OnBroadcast(m)
+        chnl := h.channels[chName]
+        // can we post?
+        if chnl.ConnectionCanPost(m.conn) {
+          // yes
+          // set last posted to now
+          chnl.Connections[m.conn] = time.Now()
+          // create our chat and send the result down the channel's recv chan
+          // fork it too
+          go createChat(m.data[:], m.conn, chnl.Send)
+        }
       }
+      m = nil
     }
   }
 }

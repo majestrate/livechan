@@ -6,7 +6,6 @@ import (
   "strings"
   "time"
   "fmt"
-  "io/ioutil"
   "encoding/base64"
   "path/filepath"
   "log"
@@ -37,20 +36,22 @@ func handleUpload(chat *InChat, fname string) {
   // get the path for the thumbnail
   thumbnail := filepath.Join("thumbs", fname)
   _, err := io.Copy(&outbuff, dec)
+  dec = nil
   if err != nil {
     log.Println("upload fail in decoding base64", err)
     return
   }
-  // generate thumbail
-  // write it out
-  err = generateThumbnail(fname, thumbnail, outbuff.Bytes())
+  // clear out input buffer
+  inbuff.Reset()
+  // get the data
+  data := outbuff.Bytes()
+  // clear the decoded input buffer
+  outbuff.Reset()
+  // process image
+  err = processImage(fname, osfname, thumbnail, data)
+  // clear data buffer
+  data = nil
   if err != nil {
-    log.Println("failed to generate thumbnail", err)
-    return
-  }
-  // write out original file
-  err = ioutil.WriteFile(osfname, outbuff.Bytes(), 0644)
-  if err != nil {
-    log.Println("failed to save upload", err);
+    log.Println("failed processing upload", err)
   }
 }
