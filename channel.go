@@ -91,9 +91,8 @@ func (self *Channel) OnBroadcast(msg *Message) {
   // check if we can broadcast to the channel
   // potentially check for +m
   if (chat.canBroadcast(msg.conn)) {
-    var buff bytes.Buffer
     for con := range self.Connections {
-      buff.Reset()
+      var buff bytes.Buffer
       chat.createJSON(con, &buff)
       // for each connection send a chat message
       select {
