@@ -9,11 +9,9 @@ import (
 )
 
 
-// raw json message
+// chat message
 type Message struct {
-  // data reader for message body
-  //reader io.Reader
-  data []byte
+  chat Chat
   conn *Connection
 }
 
@@ -55,6 +53,18 @@ func (h *Hub) RemoveChannel(chnl *Channel) {
   delete(h.channels, chnl.Name)
 }
 
+func (h *Hub) getChannel(chname string) *Channel {
+  if (h.channels[chname] == nil) {
+    // allocate channel
+    ch := NewChannel(chname)
+    // put it into the hub
+    h.channels[chname] = ch
+        // run the channel pumper
+    go ch.Run()
+  }
+  return h.channels[chname]
+}
+
 // hub mainloop
 // TODO: locking?
 func (h *Hub) run() {
@@ -81,23 +91,13 @@ func (h *Hub) run() {
       }
       // check for new connection events
     case con := <-h.register:
-      // channel has no users?
-      if (h.channels[con.channelName] == nil) {
-        // allocate channel
-        ch := NewChannel(con.channelName)
-        // put it into the hub
-        h.channels[con.channelName] = ch
-        // run the channel pumper
-        go ch.Run()
-      }
-      chnl := h.channels[con.channelName]
+      // get channel
+      chnl := h.getChannel(con.channelName)
       // put user presence
       chnl.Connections[con] = time.Unix(0,0)
       // send scollback
-      var buff bytes.Buffer
-      createJSONs(storage.getChats(con.channelName, "General", chnl.Scrollback), &buff)
-      con.send <- buff.Bytes()
-      buff.Reset()
+      ch := storage.getChats(con.channelName, "General", chnl.Scrollback)
+      createJSONs(ch, con.send)
       // call channel OnJoin
       chnl.OnJoin(con)
       
@@ -128,12 +128,13 @@ func (h *Hub) run() {
       } else {
         chnl := h.channels[chName]
         // can we post?
-        if chnl.ConnectionCanPost(m.conn) {
+        conn := m.conn
+        if chnl.ConnectionCanPost(conn) {
           // yes
           // set last posted to now
-          chnl.Connections[m.conn] = time.Now()
-          // create our chat and send the result down the channel's recv chan
-          go createChat(m.data, m.conn, chnl.Send)
+          chnl.Connections[conn] = time.Now()
+          // send the result down the channel's recv chan
+          chnl.Send <- m.chat
         }
       }
     }

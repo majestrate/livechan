@@ -64,14 +64,14 @@ type Channel struct {
   Scrollback uint64
   Name string
   // chan for recving incoming chats to send to this channel
-  Send chan *Chat
+  Send chan Chat
 }
 
 func NewChannel(name string) *Channel {
   chnl := new(Channel)
   chnl.Name = name
   // TODO: Should this be buffered?
-  chnl.Send = make(chan *Chat)
+  chnl.Send = make(chan Chat)
   var fallbackScrollback uint64
   fallbackScrollback = 50
   // if we have set a scrollback amount in our config set it here
@@ -90,17 +90,14 @@ func NewChannel(name string) *Channel {
 }
 
 // broadcast an OutChat to everyone
-func (self *Channel) BroadcastOutChat(chat *OutChat) {
+func (self *Channel) BroadcastOutChat(chat OutChat) {
   var buff bytes.Buffer
   chat.createJSON(&buff)
+  data := buff.Bytes()
   for con := range self.Connections {
-    con.send <- buff.Bytes()
+    con.send <- data
   }
-}
-
-// we got an incoming broadcast
-func (self *Channel) OnBroadcast(msg *Message) {
-
+  buff.Reset()
 }
 
 // run channel mainloop
@@ -114,8 +111,8 @@ func (self *Channel) Run() {
       // sets post number etc
       self.RegisterWithChannel(chat)
       // broadcast it
-      ch := chat.toOutChat()
-      self.BroadcastOutChat(&ch)
+      var ch = chat.toOutChat()
+      self.BroadcastOutChat(ch)
     }
   }
 }
@@ -123,9 +120,9 @@ func (self *Channel) Run() {
 // register this post as being in this channel
 // sets post number
 // saves the post
-func (self *Channel) RegisterWithChannel(chat *Chat) {
+func (self *Channel) RegisterWithChannel(chat Chat) {
   chat.Count = storage.getCount(self.Name) + 1
-  storage.insertChat(self, *chat)
+  storage.insertChat(self, chat)
 }
 
 // return true if this connection is allowed to post

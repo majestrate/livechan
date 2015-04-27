@@ -112,7 +112,7 @@ func wsServer(w http.ResponseWriter, req *http.Request) {
   // mark this user as having the session's SessionID
   user.Session = sess.ID
   // make a new connection object having the channel name and user object
-  c := &Connection{
+  var c = Connection{
     send: make(chan []byte, 256),
     ws: ws,
     channelName: channelName,
@@ -121,16 +121,17 @@ func wsServer(w http.ResponseWriter, req *http.Request) {
   }
 
   // register connection with hub
-  h.register <- c
+  h.register <- &c
 
+  go c.reader()
+  
   /* Start a reader/writer pair for the new connection. */
-  go c.writer()
+  c.writer()
   /* Nature of go treats this handler as a goroutine.
      Small optimization to not spawn a new one. */
-  c.reader()
   
   // unregister after reader ends
-  h.unregister <- c
+  h.unregister <- &c
 }
 
 // serve list of channels (?)

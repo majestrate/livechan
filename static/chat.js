@@ -77,6 +77,7 @@ Connection.prototype.send = function(obj) {
   /* Jsonify the object and send as string. */
   if (this.ws) {
     var str = JSON.stringify(obj);
+    console.log(str);
     this.ws.send(str);
     
   }

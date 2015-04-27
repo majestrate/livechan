@@ -2,13 +2,13 @@ package main
 
 import (
   "encoding/json"
+  "encoding/base64"
   "path/filepath"
   "time"
   "io"
   "strings"
   "os"
   "log"
-  "bytes"
 )
 
 // incoming chat request
@@ -74,31 +74,22 @@ type OutChat struct {
 
 // parse incoming data into Chat
 // send chat down channel
-func createChat(data []byte, conn *Connection, chnl chan *Chat) {
-  inchat := new(InChat)
+func createChat(data []byte, conn *Connection, chnl chan Message) {
+  var inchat InChat
   // un marshal json
-  var buff bytes.Buffer
-  buff.Write(data)
-  data = nil
-  dec := json.NewDecoder(&buff)
-  err := dec.Decode(inchat)
-  // zero out decoder and input
-  dec = nil
-  buff.Reset()
+  err := json.Unmarshal(data, &inchat)
   if err != nil {
-    inchat = nil
-    log.Println(conn.ipAddr, "error creating chat: ", err)
-    return
+    log.Println("error creating chat: ", err)
+    return 
   }
   
   if inchat.Empty() {
-    inchat = nil
     log.Println("empty post, dropping")
-    return
+    return 
   }
   
-  
-  c := new(Chat)
+
+  var c Chat
   
   // trim name and set to anonymous if unspecified
   c.Name = strings.TrimSpace(inchat.Name)
@@ -116,23 +107,31 @@ func createChat(data []byte, conn *Connection, chnl chan *Chat) {
   c.Message = strings.TrimSpace(inchat.Message)
   // message was recieved now
   c.Date = time.Now().UTC()
-  // extract IP address
-  // TODO: assumes IPv4
-  c.IpAddr = ExtractIpv4(conn.ipAddr)
 
   // if there is a file present handle upload
   if len(inchat.File) > 0 && len(inchat.FileName) > 0 {
     // TODO FilePreview, FileDimensions
     c.FilePath = genUploadFilename(inchat.FileName)
     c.FileName = inchat.FileName
-    log.Println(conn.ipAddr, "uploaded file", c.FilePath)
-    handleUpload(inchat, c.FilePath)
+    // decode base64
+    dec := make([]byte, base64.StdEncoding.DecodedLen(len(inchat.File)))
+    base64.StdEncoding.Decode(dec, []byte(inchat.File))
+    if err == nil {
+      log.Println("uploaded file", c.FilePath)
+      filepath := c.FilePath
+      handleUpload(filepath, dec)
+    } else {
+      log.Println("failed to decode upload", err)
+      
+      dec = nil
+      return
+    }
+    
+    dec = nil
   }
-  // gc
-  inchat = nil
-  
-  // send it
-  chnl <- c
+
+  // sendit
+  chnl <- Message{chat: c, conn: conn}
 }
 
 
@@ -172,7 +171,7 @@ func (self *InChat) Empty() bool {
 
 // create a json array of outchats for an array of chats for a given connection
 // write result to a writer
-func createJSONs(chats []Chat, w io.Writer) {
+func createJSONs(chats []Chat, out chan []byte) {
   var outChats []OutChat
   for _, chat := range chats {
     outChat := OutChat{
@@ -182,14 +181,13 @@ func createJSONs(chats []Chat, w io.Writer) {
       Count: chat.Count,
       Convo: chat.Convo,
       FilePath: chat.FilePath,
-      //Capcode: chat.genCapcode(conn),
     }
     outChats = append(outChats, outChat)
   }
-  enc := json.NewEncoder(w)
-  err := enc.Encode(outChats)
+  data, err := json.Marshal(&outChats)
   if err != nil {
     log.Println("error marshalling json: ", err)
   }
+  out <- data
 }
 

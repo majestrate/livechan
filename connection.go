@@ -3,9 +3,8 @@ package main
 import (
   "bytes"
   "github.com/gorilla/websocket"
-  "log"
+  //"log"
   //"strings"
-  "io/ioutil"
   "time"
 )
 
@@ -13,7 +12,7 @@ const (
   writeWait = 10 * time.Second     // Write timeout.
   pongWait = 60 * time.Second      // Read timeout.
   pingPeriod = (pongWait * 9) / 10 // How frequently to ping the clients.
-  maxMessageSize = 1024 * 1024 * 8        // Maximum size of a message.
+  maxMessageSize = 1024 * 1024         // Maximum size of a message.
 )
 
 /* A Connection will maintain all data pertinent to an active
@@ -42,21 +41,14 @@ func (c *Connection) reader() {
     return nil
   })
   for {
-    _, r, err := c.ws.NextReader()
+    _, d, err := c.ws.ReadMessage()
     if err != nil {
       break
     } else {
       //log.Println("got message", mtype);
     }
     if c.user.SolvedCaptcha {
-      d, err := ioutil.ReadAll(r)
-      if err != nil {
-        log.Println("error reading websocket message", err)
-        break
-      }
-      m := Message{data: d[:], conn: c}
-      d = nil
-      h.broadcast <- m
+      go createChat(d, c, h.broadcast)
     } else {
       var chat OutChat
       chat.Error = "Please fill in the captcha"
@@ -64,6 +56,7 @@ func (c *Connection) reader() {
       chat.createJSON(&buff)
       c.send <- buff.Bytes()
     }
+    
   }
 }
 
