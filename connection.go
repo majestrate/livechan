@@ -12,7 +12,7 @@ const (
   writeWait = 10 * time.Second     // Write timeout.
   pongWait = 60 * time.Second      // Read timeout.
   pingPeriod = (pongWait * 9) / 10 // How frequently to ping the clients.
-  maxMessageSize = 1024 * 1024         // Maximum size of a message.
+  maxMessageSize = 1024 * 1024     // Maximum size of a message.
 )
 
 /* A Connection will maintain all data pertinent to an active
@@ -76,12 +76,12 @@ func (c *Connection) writer() {
   defer c.Close()
   for {
     select {
-    case Message, ok := <-c.send:
+    case m, ok := <-c.send:
       if !ok {
         c.write(websocket.CloseMessage, []byte{})
         return
       }
-      if err := c.write(websocket.TextMessage, Message); err != nil {
+      if err := c.write(websocket.TextMessage, m); err != nil {
         return
       }
     case <-ticker.C:

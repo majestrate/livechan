@@ -38,8 +38,10 @@ func processImage(infname, outfname, thumbfname string, data []byte) error {
     log.Println("failed to generate thumbnail and write file", err)
     return err
   }
-  // write out original file
-  return ioutil.WriteFile(outfname, data, 0644)
+  
+  // write out original file in background
+  go ioutil.WriteFile(outfname, data, 0644)
+  return nil
 }
 
 // generate thumbanail

@@ -279,6 +279,7 @@ func (s *Database) insertChat(chnl *Channel, chat Chat) {
   }
   defer stmt.Close()
   rows, err := stmt.Query(&chnl.Scrollback, channelId)
+  defer rows.Close()
   for rows.Next() {
     var delchat Chat
     rows.Scan(&delchat.FilePath)
@@ -347,6 +348,7 @@ func (s *Database) getCount(channelName string) uint64{
   }
   var count uint64
   stmt.QueryRow(channelName).Scan(&count)
+  defer stmt.Close()
   return count
 }
 

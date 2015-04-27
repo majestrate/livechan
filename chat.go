@@ -108,6 +108,8 @@ func createChat(data []byte, conn *Connection, chnl chan Message) {
   // message was recieved now
   c.Date = time.Now().UTC()
 
+  c.IpAddr = ExtractIpv4(conn.ipAddr)
+  
   // if there is a file present handle upload
   if len(inchat.File) > 0 && len(inchat.FileName) > 0 {
     // TODO FilePreview, FileDimensions
@@ -117,7 +119,7 @@ func createChat(data []byte, conn *Connection, chnl chan Message) {
     dec := make([]byte, base64.StdEncoding.DecodedLen(len(inchat.File)))
     base64.StdEncoding.Decode(dec, []byte(inchat.File))
     if err == nil {
-      log.Println("uploaded file", c.FilePath)
+      log.Println(c.IpAddr, "uploaded file", c.FilePath)
       filepath := c.FilePath
       handleUpload(filepath, dec)
     } else {
