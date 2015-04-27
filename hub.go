@@ -86,7 +86,6 @@ func (h *Hub) run() {
             // mark underlying user object as solved captcha
             conn.user.MarkSolvedCaptcha()
             log.Println("captcha solved")
-            break
           }
         }
       }
