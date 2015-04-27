@@ -82,7 +82,7 @@ func (h *Hub) run() {
       // find the connections with this session ID
       for _, ch := range(h.channels) {
         for conn, _ := range(ch.Connections) {
-          if len(sid) > 0 && conn.user.Session == sid {
+          if conn.user.Session == sid {
             // mark underlying user object as solved captcha
             conn.user.MarkSolvedCaptcha()
             log.Println("captcha solved")
