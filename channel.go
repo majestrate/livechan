@@ -109,7 +109,7 @@ func (self *Channel) Run() {
     case chat := <- self.Send:
       // register the chat with the channel
       // sets post number etc
-      self.RegisterWithChannel(chat)
+      self.RegisterWithChannel(&chat)
       // broadcast it
       var ch = chat.toOutChat()
       self.BroadcastOutChat(ch)
@@ -120,9 +120,9 @@ func (self *Channel) Run() {
 // register this post as being in this channel
 // sets post number
 // saves the post
-func (self *Channel) RegisterWithChannel(chat Chat) {
+func (self *Channel) RegisterWithChannel(chat *Chat) {
   chat.Count = storage.getCount(self.Name) + 1
-  storage.insertChat(self, chat)
+  storage.insertChat(self, *chat)
 }
 
 // return true if this connection is allowed to post
