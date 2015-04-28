@@ -129,30 +129,12 @@ func (h *Hub) run() {
         var buff bytes.Buffer
         chat.createJSON(&buff)
         conn.send <- buff.Bytes()
-
-      } else if storage.isBanned(chName, addr) {
-        // tell them they are banned
-        ban := storage.getBan(chName, addr)
-        
-        var chat OutChat
-        if ban == nil {
-          chat.Error = ErrorMessage(errors.New(addr+" got invalid ban for /"+chName+"/"))
-        } else{ 
-          chat.Error = "Your address (" + addr + ") has been banned from /"+chName+"/ | "
-          chat.Error += ban.String()
-        }
-        // send them the notice
-        var buff bytes.Buffer
-        chat.createJSON(&buff)
-        conn.send <- buff.Bytes()
-      } else {
-        if chnl.ConnectionCanPost(conn) {
-          // yes
-          // set last posted to now
-          chnl.ConnectionPosted(conn)
-          // send the result down the channel's recv chan
-          chnl.Send <- m.chat
-        }
+      } else if chnl.ConnectionCanPost(conn) {
+        // yes
+        // set last posted to now
+        chnl.ConnectionPosted(conn)
+        // send the result down the channel's recv chan
+        chnl.Send <- m.chat
       }
     }
   }

@@ -509,53 +509,6 @@ func (self *Database) getGlobalBanReason(ipAddr string) string {
   return reason
 }
 
-func (s *Database) isBanned(channelName string, ipAddr string) bool {
-  stmt, err := s.db.Prepare(`
-  SELECT COUNT(*) FROM Bans
-  WHERE ip = ? AND channel = (SELECT id FROM channels WHERE name = ?)
-  `)
-  if err != nil {
-    log.Println("Error: could not access DB for ban.", err);
-    return false
-  }
-  defer stmt.Close()
-  var isbanned int
-  err = stmt.QueryRow(ipAddr, channelName).Scan(&isbanned)
-  if err != nil {
-    log.Println("failed to query database for ban", err)
-    return false
-  }
-  if (isbanned > 0) {
-    return true
-  } else {
-    return false;
-  }
-}
-
-
-func (s *Database) getBan(channelName string, ipAddr string) *Ban {
-  ban := new(Ban)
-  stmt, err := s.db.Prepare(`
-  SELECT offense, date, expiration, ip FROM Bans
-  WHERE ip = ? AND channel IN (SELECT id FROM channels WHERE name = ? LIMIT 1)
-  `)
-  if err != nil {
-    log.Println("Error: could not access DB.", err)
-    return nil
-  }
-  defer stmt.Close()
-  var unixTime int64
-  var unixTimeExpiration int64
-  err = stmt.QueryRow(ipAddr, channelName).Scan(&ban.Offense, &unixTime, &unixTimeExpiration, &ban.IpAddr)
-  ban.Date = time.Unix(0, unixTime)
-  ban.Expiration = time.Unix(0, unixTimeExpiration)
-  if err != nil {
-    //log.Println("error getting ban", err)
-    return nil
-  }
-  return ban
-}
-
 func createTable(db *sql.DB, name, query string) error {
   log.Println("Create table", name)
   _, err := db.Exec(query)
