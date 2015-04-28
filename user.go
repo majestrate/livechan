@@ -5,6 +5,7 @@ import (
   "time"
   "fmt"
   "log"
+  "encoding/gob"
 )
 
 
@@ -23,6 +24,11 @@ type User struct {
   IpAddr string
   Session string
   SolvedCaptcha bool
+}
+
+func init() {
+  // register user with gob for sessions
+  gob.Register(&User{})
 }
 
 // generate channel property name
