@@ -124,6 +124,7 @@ func wsServer(w http.ResponseWriter, req *http.Request) {
     sess.Values["user"] = u
     sess.Save(req, w)
     http.Redirect(w, req, path, 301)
+    log.Println(addr, "session has no user for websocket, redirecting")
     return
   }
 
