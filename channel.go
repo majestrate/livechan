@@ -4,7 +4,7 @@ import (
   "bytes"
   "time"
   "strconv"
-  //"log"
+  "log"
 )
 
 const (
@@ -28,31 +28,6 @@ type Owner struct {
   User string
   Channel string
   Permissions uint64
-}
-
-type Ban struct {
-  Offense string
-  Date time.Time
-  Expiration time.Time
-  IpAddr string
-}
-
-// forever ban
-func (self *Ban) MarkForever() {
-  self.Date = time.Now()
-  self.Expiration = time.Date(90000, 1, 1, 1, 1, 1, 1, nil) // a long time
-}
-
-// cp ban
-func (self *Ban) MarkCP() {
-  self.MarkForever()
-  self.Offense = "CP"
-}
-
-// mark ban expires after $duration
-func (self *Ban) Expires(bantime time.Duration) {
-  self.Date = time.Now()
-  self.Expiration = time.Now().Add(bantime)
 }
 
 type Channel struct {
@@ -90,7 +65,7 @@ func NewChannel(name string) *Channel {
 }
 
 // broadcast an OutChat to everyone
-func (self *Channel) BroadcastOutChat(chat OutChat) {
+func (self *Channel) BroadcastOutChat(chat *OutChat) {
   var buff bytes.Buffer
   chat.createJSON(&buff)
   data := buff.Bytes()
@@ -112,7 +87,7 @@ func (self *Channel) Run() {
       self.RegisterWithChannel(&chat)
       // broadcast it
       var ch = chat.toOutChat()
-      self.BroadcastOutChat(ch)
+      self.BroadcastOutChat(&ch)
     }
   }
 }
@@ -122,7 +97,7 @@ func (self *Channel) Run() {
 // saves the post
 func (self *Channel) RegisterWithChannel(chat *Chat) {
   chat.Count = storage.getCount(self.Name) + 1
-  storage.insertChat(self, *chat)
+  storage.insertChat(self, chat)
 }
 
 // return true if this connection is allowed to post
@@ -155,29 +130,36 @@ func (self *Channel) GetCooldown() uint64 {
   return cooldown
 }
 
-func (self *Channel) OnPart(conn *Connection) {
+func (self *Channel) RemoveConnection(conn *Connection) {
   if _, ok := self.Connections[conn]; ok {
+    // remove them from the list of connections
     delete(self.Connections, conn)
-    close(conn.send)
-    // anounce user part
-    
-    var chat OutChat
-    var buff bytes.Buffer
-    chat.UserCount = len(self.Connections)
-    chat.createJSON(&buff)
-    // tell everyone in channel the user count  decremented
-    
   }
 }
 
-func (self *Channel) OnJoin(conn *Connection) {
+func (self *Channel) Part(conn *Connection) {
+  // remove our connection from the list
+  self.RemoveConnection(conn)
+  // anounce user part    
+  var chat OutChat
+  chat.UserCount = len(self.Connections)
+  self.BroadcastOutChat(&chat)
+}
+
+func (self *Channel) Join(conn *Connection) {
+  // connection joined, add it to the list
+  self.Connections[conn] = time.Now()
   // anounce new user join
   var chat OutChat
-  var buff bytes.Buffer
   chat.UserCount = len(self.Connections)
-  chat.createJSON(&buff)
-  // send to everyone in this channel
-  for ch := range self.Connections {
-    ch.send <- buff.Bytes()
-  }
+  self.BroadcastOutChat(&chat)
+}
+
+// record that a post was made
+func (self *Channel) ConnectionPosted(conn *Connection) {
+  // record post event
+  now := time.Now()
+  self.Connections[conn] = now
+  // log it
+  log.Println(conn.ipAddr, "posted at", now.Unix())
 }

@@ -18,6 +18,9 @@ type User struct {
   Created time.Time
   //Identifiers string // JSON
   Attributes map[string]string
+
+  // user's current ip address
+  IpAddr string
   Session string
   SolvedCaptcha bool
 }

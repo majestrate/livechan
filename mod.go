@@ -6,6 +6,11 @@
 
 package main
 
+import (
+  "time"
+  "fmt"
+)
+
 // mod scope
 const (
   SCOPE_NIL = iota  // no scope
@@ -40,3 +45,32 @@ type ModEvent struct {
   Expire int64
 }
 
+
+type Ban struct {
+  Offense string
+  Date time.Time
+  Expiration time.Time
+  IpAddr string
+}
+
+// forever ban
+func (self *Ban) MarkForever() {
+  self.Date = time.Now()
+  self.Expiration = time.Date(90000, 1, 1, 1, 1, 1, 1, nil) // a long time
+}
+
+// cp ban
+func (self *Ban) MarkCP() {
+  self.MarkForever()
+  self.Offense = "CP"
+}
+
+// mark ban expires after $duration
+func (self *Ban) Expires(bantime time.Duration) {
+  self.Date = time.Now()
+  self.Expiration = time.Now().Add(bantime)
+}
+
+func (self *Ban) String() string {
+  return fmt.Sprintf("Reason: %s | Issued: %s | Expires %s ", self.Offense, self.Date.String(), self.Expiration.String())
+}

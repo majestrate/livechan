@@ -2,9 +2,8 @@ package main
 
 import (
   "bytes"
-  "time"
   "fmt"
-  //"io"
+  "errors"
   "log"
 )
 
@@ -28,7 +27,7 @@ type Hub struct {
   mod chan ModEvent
 
   // captcha events
-  captcha chan string
+  captcha chan *User
 
   // register a new connection
   register chan *Connection
@@ -41,7 +40,7 @@ type Hub struct {
 var h = Hub {
   broadcast: make(chan Message),
   mod: make(chan ModEvent),
-  captcha: make(chan string),
+  captcha: make(chan *User),
   register: make(chan *Connection),
   unregister: make(chan *Connection),
   channels: make(map[string]*Channel),
@@ -78,61 +77,70 @@ func (h *Hub) run() {
       go storage.ProcessModEvent(ev.Scope, ev.Action, ev.ChannelName, ev.PostID, ev.Expire)
       
       // check for captcha solved events
-    case sid := <-h.captcha:
-      // find the connections with this session ID
-      for _, ch := range(h.channels) {
-        for conn, _ := range(ch.Connections) {
-          if conn.user.Session == sid {
-            // mark underlying user object as solved captcha
-            conn.user.MarkSolvedCaptcha()
-            log.Println("captcha solved")
-          }
-        }
-      }
+    case u := <-h.captcha:
+      u.MarkSolvedCaptcha()
+      
       // check for new connection events
     case con := <-h.register:
       // get channel
       chnl := h.getChannel(con.channelName)
-      // put user presence
-      chnl.Connections[con] = time.Unix(0,0)
+      // join the channel
+      chnl.Join(con)
       // send scollback
       ch := storage.getChats(con.channelName, "General", chnl.Scrollback)
       createJSONs(ch, con.send)
-      // call channel OnJoin
-      chnl.OnJoin(con)
       
       // unregister connection
+      // we assume the connection's websocket is already closed
     case con := <-h.unregister:
       chname := con.channelName
       // check for existing presence
       chnl, ok := h.channels[chname]
       if ok {
-        chnl.OnPart(con)
+        // handle removal of connection from channel
+        // tell everyone in channel they left
+        chnl.Part(con)
       } else {
-        log.Println("no such channel to unregister user from", chname)
+        log.Println(con.ipAddr, "no such channel to unregister user from", chname)
       }
     case m := <-h.broadcast:
-      chName := m.conn.channelName
-      ipaddr := ExtractIpv4(m.conn.ipAddr)
-      // check for banned
-      if storage.isGlobalBanned(ipaddr) {
+      conn := m.conn
+      chName := conn.channelName
+      // this shouldn't create a new channel but do that just in case (tm)
+      chnl := h.getChannel(chName)
+      addr := conn.ipAddr
+      
+      // check for global ban
+      if storage.isGlobalBanned(addr) {
         // tell them they are banned
         var chat OutChat
-        chat.Error = "You have been banned from Livechan: "
-        chat.Error += storage.getGlobalBanReason(ipaddr)
+        chat.Error = "Your address (" + addr + ") has been banned globally from Livechan: "
+        chat.Error += storage.getGlobalBanReason(addr)
         // send them the ban notice
         var buff bytes.Buffer
         chat.createJSON(&buff)
-        m.conn.send <- buff.Bytes()
-        buff.Reset()
+        conn.send <- buff.Bytes()
+
+      } else if storage.isBanned(chName, addr) {
+        // tell them they are banned
+        ban := storage.getBan(chName, addr)
+        
+        var chat OutChat
+        if ban == nil {
+          chat.Error = ErrorMessage(errors.New(addr+" got invalid ban for /"+chName+"/"))
+        } else{ 
+          chat.Error = "Your address (" + addr + ") has been banned from /"+chName+"/ | "
+          chat.Error += ban.String()
+        }
+        // send them the notice
+        var buff bytes.Buffer
+        chat.createJSON(&buff)
+        conn.send <- buff.Bytes()
       } else {
-        chnl := h.channels[chName]
-        // can we post?
-        conn := m.conn
         if chnl.ConnectionCanPost(conn) {
           // yes
           // set last posted to now
-          chnl.Connections[conn] = time.Now()
+          chnl.ConnectionPosted(conn)
           // send the result down the channel's recv chan
           chnl.Send <- m.chat
         }

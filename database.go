@@ -146,6 +146,7 @@ func (s *Database) ProcessModEvent(scope, action int, channelName string, postID
   }
   // commit transaction
   tx.Commit()
+  log.Println("mod event", scope, action, channelName, postID)
 }
 
 // set a mod's attribute to a given value
@@ -212,6 +213,7 @@ func (s *Database) insertChannel(channelName string) {
   }
   _, err = stmt.Exec(channelName)
   tx.Commit()
+  log.Println("commited new channel:", channelName)
 }
 
 func (s *Database) insertConvo(channelId int, convoName string) {
@@ -228,9 +230,10 @@ func (s *Database) insertConvo(channelId int, convoName string) {
   }
   _, err = stmt.Exec(channelId, convoName)
   tx.Commit()
+  log.Println("new convo for", channelId, convoName)
 }
 
-func (s *Database) insertChat(chnl *Channel, chat Chat) {
+func (s *Database) insertChat(chnl *Channel, chat *Chat) {
   /* Get the ids. */
   channelId := s.getChatChannelId(chnl.Name)
   // no such channel ?
@@ -238,7 +241,7 @@ func (s *Database) insertChat(chnl *Channel, chat Chat) {
     s.insertChannel(chnl.Name)
     channelId = s.getChatChannelId(chnl.Name)
     if channelId == 0 {
-      log.Println("Error creating channel.", chnl.Name);
+      log.Println("Error creating channel", chnl.Name);
       return
     }
   }
@@ -534,7 +537,7 @@ func (s *Database) getBan(channelName string, ipAddr string) *Ban {
   ban := new(Ban)
   stmt, err := s.db.Prepare(`
   SELECT offense, date, expiration, ip FROM Bans
-  WHERE ip = ? AND channel = (SELECT id FROM channels WHERE name = ?)
+  WHERE ip = ? AND channel IN (SELECT id FROM channels WHERE name = ? LIMIT 1)
   `)
   if err != nil {
     log.Println("Error: could not access DB.", err)

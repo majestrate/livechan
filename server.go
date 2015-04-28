@@ -8,8 +8,6 @@ import (
   _ "net/http/pprof"
 )
 
-var cfg = LoadConfig("livechan.ini")
-
 func main() {
 
   cfg.Validate()

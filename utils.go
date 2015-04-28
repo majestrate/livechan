@@ -9,6 +9,7 @@ import (
   "log"
   "net/http"
   "strings"
+  "fmt"
 )
 
 // check if 2 ip address strings are the same
@@ -92,4 +93,9 @@ func randbytes(num int) []byte {
   b := make([]byte, num)
   io.ReadFull(rand.Reader, b)
   return b
+}
+
+// generate fatal error message
+func ErrorMessage(err error) string {
+  return fmt.Sprintf("The backend threw an error, contact the admin. Please supply the channel name and if possible the ip address used to access the site. Error info: %s", err)
 }

@@ -25,6 +25,7 @@ type Connection struct {
   user *User // user info
 }
 
+// explicit close
 func (c *Connection) Close() {
   h.unregister <- c
   c.ws.Close()
@@ -32,8 +33,6 @@ func (c *Connection) Close() {
 
 /* @brief Read until there is an error. */
 func (c *Connection) reader() {
-  /* Clean up once this function exits (can't read). */
-  defer c.Close()
   c.ws.SetReadLimit(maxMessageSize)
   c.ws.SetReadDeadline(time.Now().Add(pongWait))
   c.ws.SetPongHandler(func(string) error {
@@ -44,12 +43,13 @@ func (c *Connection) reader() {
     _, d, err := c.ws.ReadMessage()
     if err != nil {
       break
-    } else {
-      //log.Println("got message", mtype);
     }
+    // did we solve the captcha?
     if c.user.SolvedCaptcha {
+      // ya, create chat
       go createChat(d, c, h.broadcast)
     } else {
+      // nah, send captcha challenge
       var chat OutChat
       chat.Error = "Please fill in the captcha"
       var buff bytes.Buffer

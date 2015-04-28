@@ -9,7 +9,7 @@ import (
   "strings"
 )
 
-var needed_keys = []string{"db_type", "db_url", "ban_tor", "prefix", "bind"}
+var needed_keys = []string{"db_type", "db_url", "ban_tor", "prefix", "bind", "api_secret"}
 
 type LivechanConfig map[string]string
 
@@ -51,3 +51,6 @@ func (self LivechanConfig) Validate() {
     }
   }
 }
+
+
+var cfg = LoadConfig("livechan.ini")
