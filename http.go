@@ -98,8 +98,8 @@ func wsServer(w http.ResponseWriter, req *http.Request) {
     return
   }
   addr := getRealIP(req)
-  path := req.URL.Path
-  channelName := path[4:] // Slice off "/ws/"
+  path := cfg["prefix"] + req.URL.Path[1:]
+  channelName := req.URL.Path[4:] // Slice off "/ws/"
   
 
   // redirect to channel if ends with /
