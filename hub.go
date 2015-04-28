@@ -78,7 +78,15 @@ func (h *Hub) run() {
       
       // check for captcha solved events
     case u := <-h.captcha:
-      u.MarkSolvedCaptcha()
+      // find user that matches our user via IP
+      // mark them as solved for all channels
+      for chnl := range(h.channels) {
+        for conn := range(chnl.Connections) {
+          if u.IpAddr == conn.user.IpAddr {
+            conn.user.MarkSolvedCaptcha()
+          }
+        }
+      }
       
       // check for new connection events
     case con := <-h.register:
