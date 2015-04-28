@@ -74,7 +74,7 @@ func obtainSession(w http.ResponseWriter, req *http.Request) *sessions.Session {
     sess.ID = NewSalt()
     sess.Values["user"] = nil
     sess.Save(req, w)
-    path := cfg["prefix"] + req.URL.Path[:1]
+    path := cfg["prefix"] + req.URL.Path[1:]
     log.Println(addr, "new session, redirecting to", path)
     http.Redirect(w, req, path, 302)
     return nil
