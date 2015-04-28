@@ -80,7 +80,8 @@ func (h *Hub) run() {
     case u := <-h.captcha:
       // find user that matches our user via IP
       // mark them as solved for all channels
-      for chnl := range(h.channels) {
+      for chName := range(h.channels) {
+        chnl := h.channels[chName]
         for conn := range(chnl.Connections) {
           if u.IpAddr == conn.user.IpAddr {
             conn.user.MarkSolvedCaptcha()
