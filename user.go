@@ -47,6 +47,7 @@ func globalPropName(propName string) string {
 // mark this user as having solved a captcha
 func (user *User) MarkSolvedCaptcha() {
   user.SolvedCaptcha = true
+  log.Println(user.IpAddr, "solved captcha")
 }
 
 // attempt login to the moderation system
