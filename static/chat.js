@@ -107,7 +107,7 @@ function initWebSocket(prefix, channel, connection) {
   var ws = null;
   if (window['WebSocket']) {
     try {
-      var ws_url = 'ws://'+location.hostname+prefix+channel;
+      var ws_url = 'ws://'+location.hostname+prefix+"ws/"+channel;
       console.log(ws_url);
       ws = new WebSocket(ws_url);
     } catch(e) {
