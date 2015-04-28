@@ -116,7 +116,9 @@ function initWebSocket(prefix, channel, connection) {
   }
   if (ws !== null) {
     ws.onerror = function() {
-      connection.ws = null;
+      if (connection) {
+        connection.ws = null;
+      }
     };
     if (connection) {
       console.log("reconnected.");
