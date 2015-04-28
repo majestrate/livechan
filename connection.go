@@ -49,6 +49,7 @@ func (c *Connection) reader() {
       // ya, create chat
       go createChat(d, c, h.broadcast)
     } else {
+      log.Println(user.IpAddr, "needs to solve captcha")
       // nah, send captcha challenge
       var chat OutChat
       chat.Error = "Please fill in the captcha"
