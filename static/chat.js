@@ -103,11 +103,11 @@ Connection.prototype.onclose = function(callback) {
  * @param channel The channel to open a connection to.
  * @return A connection the the websocket.
  */
-function initWebSocket(channel, connection) {
+function initWebSocket(prefix, channel, connection) {
   var ws = null;
   if (window['WebSocket']) {
     try {
-      var ws_url = 'ws://'+location.hostname+':18080/ws/'+channel;
+      var ws_url = 'ws://'+location.hostname+prefix+channel;
       console.log(ws_url);
       ws = new WebSocket(ws_url);
     } catch(e) {
@@ -233,15 +233,17 @@ var messageRules = [
 function Chat(domElem, channel, options) {
   this.name = channel;
   this.domElem = domElem;
-  this.chatElems = buildChat(domElem, channel);
-  this.connection = initWebSocket(channel);
-  this.initOutput();
-  this.initInput();
   if (options) {
     this.options = options;
   } else {
     this.options = {};
   }
+  this.chatElems = buildChat(domElem, channel);
+  var prefix = this.options.prefix || "/";
+  this.connection = initWebSocket(prefix, channel);
+  this.initOutput();
+  this.initInput();
+  
 }
 
 /**
@@ -409,8 +411,8 @@ Chat.prototype.initOutput = function() {
   var getConnection = setInterval(function() {
     console.log("Attempting to reconnect.");
     self.notify("disconnected");
-    
-    if (initWebSocket(connection.channel, connection) !== null
+    var prefix = self.options.prefix || "/";
+    if (initWebSocket(prefix, connection.channel, connection) !== null
         && connection.ws !== null) {
       console.log("Success!");
       self.notify("connected to livechan");
