@@ -123,7 +123,7 @@ func wsServer(w http.ResponseWriter, req *http.Request) {
     u.IpAddr = addr
     sess.Values["user"] = u
     sess.Save(req, w)
-    http.Redirect(w, req, path, 302)
+    http.Redirect(w, req, path, 301)
     return
   }
 
