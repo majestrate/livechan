@@ -76,7 +76,7 @@ func obtainSession(w http.ResponseWriter, req *http.Request) *sessions.Session {
     sess.Save(req, w)
     path := cfg["prefix"] + req.URL.Path[1:]
     log.Println(addr, "new session, redirecting to", path)
-    http.Redirect(w, req, path, 302)
+    http.Redirect(w, req, path, 301)
     return nil
   }
   return sess
@@ -207,7 +207,7 @@ func htmlServer(w http.ResponseWriter, req *http.Request) {
     idx :=  strings.Index(channelName, "/")
     channelName = channelName[:idx]
     prefix := cfg["prefix"]
-    http.Redirect(w, req, prefix+channelName, 302)
+    http.Redirect(w, req, prefix+channelName, 301)
     return
   }
 
