@@ -109,7 +109,6 @@ func (s *Database) ProcessModEvent(scope, action int, channelName string, postID
   }
   // do we want to delete files?
   if delChatFiles {
-    log.Println("doing mod query", queryFile)
     stmt, err := tx.Prepare(queryFile)
     if err != nil {
       log.Println("cannot prepare file selection sql query for SCOPE", scope, "POST", postID, err)
@@ -133,7 +132,6 @@ func (s *Database) ProcessModEvent(scope, action int, channelName string, postID
   }
   // do we want to delete chats?
   if delChats {
-    log.Println("doing mod query", queryDelete)
     stmt, err := tx.Prepare(queryDelete)
     if err != nil {
       log.Println("cannot prepare chat delete sql query", err)
