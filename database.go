@@ -76,13 +76,13 @@ func (s *Database) ProcessModEvent(scope, action int, channelName string, postID
   var queryFile, queryDelete string
   if scope == SCOPE_GLOBAL && action <= ACTION_DELETE_ALL {
     // all posts in this for this ip
-    queryFile = `SELECT file_path FROM Chats WHERE ip = ( 
+    queryFile = `SELECT file_path FROM Chats WHERE ip IN ( 
                    SELECT ip FROM Chats WHERE 
                      channel IN (
                        SELECT id FROM Channels WHERE name = ? LIMIT 1
                    ) AND count = ?
                  )`
-    queryDelete = `DELETE FROM Chats WHERE ip = (
+    queryDelete = `DELETE FROM Chats WHERE ip IN (
                      SELECT ip FROM Chats WHERE 
                        channel IN (
                          SELECT id FROM Channels WHERE name = ? LIMIT 1
@@ -92,10 +92,10 @@ func (s *Database) ProcessModEvent(scope, action int, channelName string, postID
     // all posts in this channel for this ip
     queryFile = `WITH chanID(id) AS ( SELECT id FROM Channels WHERE name = ? LIMIT 1 )
                  SELECT file_path FROM Chats WHERE channel IN chanID
-                 AND ip = ( SELECT ip FROM Chats WHERE channel IN chanID AND count = ? )`
+                 AND ip IN ( SELECT ip FROM Chats WHERE channel IN chanID AND count = ? )`
     queryDelete = `WITH chanID(id) AS ( SELECT id FROM Channels WHERE name = ? LIMIT 1 )
                    DELETE FROM Chats WHERE channel IN chanID
-                   AND ip = ( SELECT ip FROM Chats WHERE channel IN chanID AND count = ? )`
+                   AND ip IN ( SELECT ip FROM Chats WHERE channel IN chanID AND count = ? )`
   } else {
     // this post explicitly
     queryFile = `SELECT file_path FROM Chats WHERE channel IN (
