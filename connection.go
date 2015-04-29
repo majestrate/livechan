@@ -47,12 +47,12 @@ func (c *Connection) reader() {
     // did we solve the captcha?
     if c.user.SolvedCaptcha {
       // ya, create chat
-      go createChat(d, c, h.broadcast)
+      go createChat(d, c)
     } else {
       log.Println(c.user.IpAddr, "needs to solve captcha")
       // nah, send captcha challenge
       var chat OutChat
-      chat.Error = "Please fill in the captcha"
+      chat.Notify = "Please fill in the captcha"
       var buff bytes.Buffer
       chat.createJSON(&buff)
       c.send <- buff.Bytes()

@@ -5,7 +5,7 @@ import (
   "github.com/dchest/captcha"
   "github.com/gographics/imagick/imagick"
   "log"
-  _ "net/http/pprof"
+  //_ "net/http/pprof"
 )
 
 func main() {
@@ -19,11 +19,18 @@ func main() {
   db  := initDB(db_type, db_url)
   // set storage
   storage = &Database{db:db}
-  
+
   // ensure tor exits are banned
   if cfg.BanTor() {
     BanTor()
   }
+
+  
+
+  
+  // TODO: kinda pointless
+  creds := cfg["admin_creds"]
+  storage.EnsureAdminCreds(creds)
 
   // run hub
   // TODO: shouldn't hub be made in this method?

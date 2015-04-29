@@ -123,8 +123,8 @@ func (h *Hub) run() {
       if storage.isGlobalBanned(addr) {
         // tell them they are banned
         var chat OutChat
-        chat.Error = "Your address (" + addr + ") has been banned globally from Livechan: "
-        chat.Error += storage.getGlobalBanReason(addr)
+        chat.Notify = "Your address (" + addr + ") has been banned globally from Livechan: "
+        chat.Notify += storage.getGlobalBanReason(addr)
         // send them the ban notice
         var buff bytes.Buffer
         chat.createJSON(&buff)

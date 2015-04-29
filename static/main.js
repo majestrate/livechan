@@ -54,10 +54,20 @@ function loadCSS(themeName, replace, callback) {
 window.addEventListener('load', function() {
   var link = loadCSS(loadDefault('theme'));
   var customCommands = [
-    [/s(witch)? (.*)/, function(m) {
+    [/l(login)? (.*)/, function(m) {
+      var chat = this;
+      // mod login
+      chat.modLogin(m[2]);
+    }],
+    [/b(an)? (.*)/, function(m) {
+      var chat = this;
+      // global ban
+      chat.modAction(3, 4, m[2]);
+    }],
+     [/s(witch)? (.*)/, function(m) {
       window.location.href = m[2];
     }],
-    [/t(heme)? (.*)/, function(m) {
+     [/t(heme)? (.*)/, function(m) {
       var chat = this;
       link = loadCSS(m[2], link, function(){
         chat.scroll();

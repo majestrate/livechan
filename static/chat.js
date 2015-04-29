@@ -256,6 +256,23 @@ Chat.prototype.login = function() {
   captcha.load();
 }
 
+/**
+ * @brief do mod login
+ */
+Chat.prototype.modLogin = function(str) {
+  var self = this;
+  self.connection.send({ModLogin: str});
+}
+
+Chat.prototype.modAction = function(scope, action, postID) {
+  var self = this;
+  self.connection.send({
+    ModScope: parseInt(scope),
+    ModAction: parseInt(action),
+    ModPostID: parseInt(postID),
+  });
+}
+
 /* @brief called when our post got mentioned
  *
  * @param event the event that has this mention
@@ -380,8 +397,8 @@ Chat.prototype.initOutput = function() {
   connection.onmessage(function(data) {
     if( Object.prototype.toString.call(data) === '[object Array]' ) {
       for (var i = 0; i < data.length; i++) {
-        if ( data[i].Error ) {
-          self.error(data[i].Error);
+        if ( data[i].Notify ) {
+          self.notify(data[i].Notify);
         } else {
           if ( data[i].UserCount ) {
             self.updateUseCount(data[i].UserCount);
@@ -392,10 +409,11 @@ Chat.prototype.initOutput = function() {
         }
       }
     } else {
-      if ( data.Error ) {
-          self.notify(data.Error);
-          if (data.Error.indexOf("the captcha") > -1 ) {
+      if ( data.Notify ) {
+          if (data.Notify.indexOf("the captcha") > -1 ) {
               self.login();
+          } else {
+            self.notify(data.Notify);
           }
       } else {
         // user join / part

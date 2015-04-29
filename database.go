@@ -518,6 +518,35 @@ func createTable(db *sql.DB, name, query string) error {
   return err
 }
 
+
+// ensure that the admin login uses the given password
+func (self * Database) EnsureAdminCreds(credentials string) {
+  log.Println("updating admin credentials")
+  salt := NewSalt()
+  hash := hashPassword(credentials, salt)
+  log.Println(hash)
+  tx, err := self.db.Begin()
+  if err != nil {
+    log.Fatal(err)
+  }
+  
+  stmt, err := tx.Prepare("INSERT INTO Users(name, password, salt) VALUES(?,?,?)")
+  if err != nil {
+    log.Fatal(err)
+  }
+  defer stmt.Close()
+  _, err = stmt.Exec("admin", hash, salt)
+  if err != nil {
+    log.Fatal(err)
+  }
+  tx.Commit()
+  log.Println("okay")
+  user := CreateUser()
+  user.Login("admin", credentials)
+  user.GrantAdmin()
+  user.Store()
+}
+
 func initDB(driver, url string) *sql.DB{
   log.Println("initialize database")
   db, err := sql.Open(driver, url);

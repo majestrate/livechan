@@ -119,7 +119,7 @@ func wsServer(w http.ResponseWriter, req *http.Request) {
   u := getUserFromSession(sess)
   // if we have no user create one and redirect back to ourselves
   if u == nil {
-    u = new(User)
+    u = CreateUser()
     u.IpAddr = addr
     sess.Values["user"] = u
     sess.Save(req, w)

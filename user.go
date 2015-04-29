@@ -26,6 +26,10 @@ type User struct {
   SolvedCaptcha bool
 }
 
+func CreateUser() *User {
+  return &User{Attributes: make(map[string]string)}
+}
+
 func init() {
   // register user with gob for sessions
   gob.Register(&User{})
@@ -52,8 +56,8 @@ func (user *User) MarkSolvedCaptcha() {
 
 // attempt login to the moderation system
 // return true on success otherwise false
-func (user *User) Login(password, name string) bool {
-  user.Name = name
+func (user *User) Login(username, password string) bool {
+  user.Name = username
   if storage.checkModLogin(user.Name, password) {
     // refresh this user's information
     return user.Refresh()
@@ -93,8 +97,30 @@ func (user *User) Refresh() bool {
   return true
 }
 
+// save and remember attributes
+func (user *User) Store() {
+  for attr := range(user.Attributes) {
+    storage.setModAttribute(user.Name, attr, user.Attributes[attr])
+  }
+}
+
+// grant this user admin
+func (user *User) GrantAdmin() {
+  user.Attributes["admin"] = "1"
+}
+
+// are we admin ?
+func (user *User) IsAdmin() bool {
+  return user.GetInt("admin") == 1
+}
+
 // return true if we can do action on this scope
 func (user *User) PermitAction(channelName string, scope, action int) bool {
+
+  // admin can do whatever
+  if user.IsAdmin() {
+    return true
+  }
   switch(scope) {
   case SCOPE_POST:
   case SCOPE_CHANNEL:
@@ -107,16 +133,17 @@ func (user *User) PermitAction(channelName string, scope, action int) bool {
   return false
 }
 
-func (user *User) Moderate(scope, action int, channelName string, postID int, expire int64) {
+func (user *User) Moderate(scope, action int, channelName string, postID int, expire int64) bool {
   // can we moderate?
   if user.PermitAction(channelName, scope, action) {
     // yes we can!
     // send the event to the event hub
     h.mod <- ModEvent{scope, action, channelName, postID, user.Name, expire}
-  } else {
-    // no we cannot do this action
-    log.Println("invalid mod action attempt by", user.Name, "channel=", channelName, "action=", action, "scope=", scope, "postID=", postID)
-  } 
+    return true
+  }
+  // no we cannot do this action
+  log.Println("invalid mod action attempt by", user.Name, "channel=", channelName, "action=", action, "scope=", scope, "postID=", postID)
+  return false
 }
 
   

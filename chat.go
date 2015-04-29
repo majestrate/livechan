@@ -9,6 +9,8 @@ import (
   "strings"
   "os"
   "log"
+  "bytes"
+  "fmt"
 )
 
 // incoming chat request
@@ -18,6 +20,10 @@ type InChat struct {
   Message string
   File string
   FileName string
+  ModLogin string // user:password
+  ModScope int // moderation request scope
+  ModAction int // moderation request action
+  ModPostID int // moderation request target
 }
 
 /* To be stored in the DB. */
@@ -68,14 +74,16 @@ type OutChat struct {
   Convo string
   // for stuff like (you) and (mod)
   Capcode string
-  // error messages i.e. mod login / captcha failure / bans
-  Error string
+  // error messages / mod events / captcha failure / bans
+  // pops up a desktop notification
+  Notify string
 }
 
 // parse incoming data into Chat
 // send chat down channel
-func createChat(data []byte, conn *Connection, chnl chan Message) {
+func createChat(data []byte, conn *Connection) {
   var inchat InChat
+  var buff bytes.Buffer
   // un marshal json
   err := json.Unmarshal(data, &inchat)
   if err != nil {
@@ -87,9 +95,39 @@ func createChat(data []byte, conn *Connection, chnl chan Message) {
     log.Println("empty post, dropping")
     return 
   }
-  
 
   var c Chat
+  var oc OutChat
+
+  // trim message and set
+  c.Message = strings.TrimSpace(inchat.Message)
+  
+  // attempt a mod login
+  if len(inchat.ModLogin) > 0 {
+    var username, password string
+    idx := strings.Index(inchat.ModLogin, ":")
+    username = inchat.ModLogin[:idx]
+    password = inchat.ModLogin[1+idx:]
+
+    if conn.user.Login(username, password) {
+      oc.Notify = "You have logged in as "+username
+    } else {
+      oc.Notify = "Login Failed"
+    }
+  }
+  
+  if inchat.ModScope > 0 && inchat.ModAction > 0 {
+    // attempt mod action
+    res := conn.user.Moderate(inchat.ModScope, inchat.ModAction, conn.channelName, inchat.ModPostID, 0)
+    if res {
+      oc.Notify = "Moderation done"
+      c.Trip = "MODERATOR"
+      c.Message = fmt.Sprintf("%s %s >>%d", ScopeString(inchat.ModScope), ActionString(inchat.ModAction), inchat.ModPostID)
+    } else {
+      oc.Notify = "Invalid Permissions"
+    }
+  }
+
   
   // trim name and set to anonymous if unspecified
   c.Name = strings.TrimSpace(inchat.Name)
@@ -103,8 +141,6 @@ func createChat(data []byte, conn *Connection, chnl chan Message) {
     c.Convo = "General"
   }
   
-  // trim message and set
-  c.Message = strings.TrimSpace(inchat.Message)
   // message was recieved now
   c.Date = time.Now().UTC()
 
@@ -124,7 +160,7 @@ func createChat(data []byte, conn *Connection, chnl chan Message) {
       handleUpload(filepath, dec)
     } else {
       log.Println("failed to decode upload", err)
-      
+      oc.Notify = "failed to decode upload"
       dec = nil
       return
     }
@@ -132,8 +168,16 @@ func createChat(data []byte, conn *Connection, chnl chan Message) {
     dec = nil
   }
 
-  // sendit
-  chnl <- Message{chat: c, conn: conn}
+
+  // send any immediate notifications
+  if len(oc.Notify) > 0 {
+    oc.createJSON(&buff)
+    conn.send <- buff.Bytes()
+  }
+  if len(inchat.ModLogin) == 0 {
+    // send the chat if it wasn't a mod login
+    h.broadcast <- Message{chat: c, conn: conn}
+  }
 }
 
 

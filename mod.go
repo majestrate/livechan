@@ -28,6 +28,39 @@ const (
   ACTION_BAN                // ban this user
 )
 
+
+func ActionString(action int) string {
+  switch action {
+  case ACTION_NIL:
+    return "nil"
+  case ACTION_DELETE_FILE:
+    return "Remove File of Post"
+  case ACTION_DELETE_POST:
+    return "Delete Post"
+  case ACTION_DELETE_ALL:
+    return "Nuke all Posts From Poster"
+  case ACTION_BAN:
+    return "Ban"
+  default:
+    return "PURGE"
+  }
+}
+
+func ScopeString(scope int) string {
+  switch scope {
+  case SCOPE_NIL:
+    return "Null"
+  case SCOPE_POST:
+    return "Local"
+  case SCOPE_CHANNEL:
+    return "Channel Wide"
+  case SCOPE_GLOBAL:
+    return "Global"
+  default:
+    return "MAGICAL"
+  }
+}
+
 type ModEvent struct {
   // the scope of this event
   Scope int

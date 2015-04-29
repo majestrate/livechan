@@ -9,7 +9,7 @@ import (
   "strings"
 )
 
-var needed_keys = []string{"db_type", "db_url", "ban_tor", "prefix", "bind", "api_secret"}
+var needed_keys = []string{"db_type", "db_url", "ban_tor", "prefix", "bind", "api_secret", "admin_creds"}
 
 type LivechanConfig map[string]string
 
