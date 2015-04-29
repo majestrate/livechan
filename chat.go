@@ -212,7 +212,7 @@ func (chat *Chat) toOutChat() OutChat{
 }
 
 func (self *InChat) Empty() bool {
-  return len(self.Message) == 0 && len(self.File) == 0
+  return len(self.Message) == 0 && len(self.File) == 0 && len(self.ModLogin) == 0 && self.ModPostID == 0
 }
 
 // create a json array of outchats for an array of chats for a given connection
