@@ -74,7 +74,7 @@ func (s *Database) ProcessModEvent(scope, action int, channelName string, postID
   }
   
   var queryFile, queryDelete string
-  if scope == SCOPE_GLOBAL && action <= ACTION_DELETE_ALL {
+  if scope == SCOPE_GLOBAL && action >= ACTION_DELETE_ALL {
     // all posts in this for this ip
     queryFile = `SELECT file_path FROM Chats WHERE ip IN ( 
                    SELECT ip FROM Chats WHERE 
@@ -88,7 +88,7 @@ func (s *Database) ProcessModEvent(scope, action int, channelName string, postID
                          SELECT id FROM Channels WHERE name = ? LIMIT 1
                      ) AND count = ?
                    )`
-  } else if scope == SCOPE_CHANNEL && action <= ACTION_DELETE_ALL {
+  } else if scope == SCOPE_CHANNEL && action >= ACTION_DELETE_ALL {
     // all posts in this channel for this ip
     queryFile = `WITH chanID(id) AS ( SELECT id FROM Channels WHERE name = ? LIMIT 1 )
                  SELECT file_path FROM Chats WHERE channel IN chanID
