@@ -94,9 +94,10 @@ func (s *Database) ProcessModEvent(scope, action int, channelName string, postID
     }
     defer stmt.Close()
     stmt.Exec(ip, "Banned By Admin", -1, time.Now())
-    
+    tx.Commit()
   }
 
+  tx, err = s.db.Begin()
   
   
   var queryFile, queryDelete string
