@@ -76,7 +76,7 @@ Captcha.prototype.load = function() {
  */
 Captcha.prototype.setCaptchaId = function(id) {
   this.captcha_id = id;
-  var url = "http://" + location.hostname + ":18080";
+  var url = "http://" + location.hostname + this.prefix;
   this.setImageUrl(url + "/captcha/" + id + ".png");
 }
 
