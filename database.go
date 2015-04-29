@@ -93,7 +93,7 @@ func (s *Database) ProcessModEvent(scope, action int, channelName string, postID
       return
     }
     defer stmt.Close()
-    stmt.Query(ip, "Banned By Admin", -1, time.Now())
+    stmt.Exec(ip, "Banned By Admin", -1, time.Now())
     
   }
 
