@@ -87,13 +87,13 @@ func (s *Database) ProcessModEvent(scope, action int, channelName string, postID
     }
     defer stmt.Close()
     log.Println("Ban", ip)
-    stmt, err = tx.Prepare("INSERT INTO GlobalBans(ip, offense, expiration) VALUES(?,?,?)")
+    stmt, err = tx.Prepare("INSERT INTO GlobalBans(ip, offense, expiration, date) VALUES(?,?,?,?)")
     if err != nil {
       log.Println("failed to ban", err)
       return
     }
     defer stmt.Close()
-    stmt.Query(ip, "Banned By Admin", -1)
+    stmt.Query(ip, "Banned By Admin", -1, time.Now())
     
   }
 
