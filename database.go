@@ -67,11 +67,33 @@ func (s *Database) ProcessModEvent(scope, action int, channelName string, postID
   delChats := action >= ACTION_DELETE_POST
   // should these chats have their files removed?
   delChatFiles := action >= ACTION_DELETE_FILE
+
+  
+  
   tx, err := s.db.Begin()
   if err != nil {
     log.Println("failed to prepare transaction for mod action", err)
     return
   }
+  // is this a ban?
+  if action >= ACTION_BAN {
+    // ban the fucker
+    stmt, err := tx.Prepare("SELECT ip FROM Chats WHERE channel IN ( SELECT id FROM Channels WHERE name = ? ) AND count = ?")
+    var ip string
+    stmt.QueryRow(channelName, postID).Scan(&ip)
+    if len(ip) == 0 {
+      log.Println("wtf we can't get the poster's ID")
+      return
+    }
+    stmt, err = tx.Prepare("INSERT INTO GlobalBans(ip, offense, expires) VALUES(?,?,?)")
+    if err != nil {
+      log.Println("failed to ban", err)
+      return
+    }
+    stmt.Query(ip, "Banned By Admin", -1)
+  }
+
+  
   
   var queryFile, queryDelete string
   if scope == SCOPE_GLOBAL && action >= ACTION_DELETE_ALL {
