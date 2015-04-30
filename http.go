@@ -67,7 +67,7 @@ func obtainSession(w http.ResponseWriter, req *http.Request) *sessions.Session {
   sess, err := session.Get(req, "livechan")
   if err != nil {
     log.Println(addr, "invalid session", err)
-    http.Error(w, fmt.Sprintf("Internal Server error: %s", err), 500)
+    http.Error(w, "please clear your cookies", 500)
     return nil
   }
   if sess.IsNew {
