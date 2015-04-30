@@ -295,6 +295,13 @@ func optionsServer(w http.ResponseWriter, req *http.Request) {
     http.Error(w, "Method Not Allowed", 405)
     return
   }
+
+  // get our session
+  sess := obtainSession(req, w)
+  if sess == nil {
+    return
+  }
+  
   // begin writing json response
   io.WriteString(w, "{ ")
 
