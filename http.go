@@ -297,7 +297,7 @@ func optionsServer(w http.ResponseWriter, req *http.Request) {
   }
 
   // get our session
-  sess := obtainSession(req, w)
+  sess := obtainSession(w, req)
   if sess == nil {
     return
   }
