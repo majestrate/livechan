@@ -130,7 +130,7 @@ func createChat(data []byte, conn *Connection) {
     if res {
       oc.Notify = "Moderation done"
       c.Trip = "!Mod"
-      if conn.user.IsAdmin() [
+      if conn.user.IsAdmin() {
         c.Trip = "!Admin"
       }
       c.Message = fmt.Sprintf("%s %s >>%d", ScopeString(inchat.ModScope), ActionString(inchat.ModAction), inchat.ModPostID)
@@ -232,7 +232,7 @@ func (self *InChat) Empty() bool {
 func createJSONs(chats []Chat, out chan []byte) {
   var outChats []OutChat
   for _, chat := range chats {
-    outChat := chat.ToOutChat()
+    outChat := chat.toOutChat()
     outChats = append(outChats, outChat)
   }
   data, err := json.Marshal(&outChats)
