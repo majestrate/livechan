@@ -110,8 +110,10 @@ func createChat(data []byte, conn *Connection) {
   if len(inchat.ModLogin) > 0 {
     var username, password string
     idx := strings.Index(inchat.ModLogin, ":")
-    username = inchat.ModLogin[:idx]
-    password = inchat.ModLogin[1+idx:]
+    if idx > 3 {
+      username = inchat.ModLogin[:idx]
+      password = inchat.ModLogin[1+idx:]
+    }
 
     if conn.user.Login(username, password) {
       oc.Notify = "You have logged in as "+username
