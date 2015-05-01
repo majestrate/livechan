@@ -12,7 +12,7 @@ function buildNavbar(domElem) {
   // mod indicator
   var mod = document.createElement("span");
   mod.className = 'livechan_mod_indicator_inactive';
-  mod.textContent = "User";
+  mod.textContent = "Anon";
   
   // usercounter
   var usercount = document.createElement("span");

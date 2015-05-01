@@ -243,6 +243,10 @@ function Chat(domElem, channel, options) {
   this.connection = initWebSocket(prefix, this.name);
   this.initOutput();
   this.initInput();
+
+  // show navbar status
+  var elem = this.chatElems.navbar.userCount;
+  elem.textContent = "Connecting..."
   
   this.captcha = new Captcha(this.domElem, this.options);
   this.captcha.hide();
@@ -453,7 +457,7 @@ Chat.prototype.initOutput = function() {
  */
 Chat.prototype.updateUserCount = function(count) {
   var elem = this.chatElems.navbar.userCount;
-  elem.textContent = "users online: "+count;
+  elem.textContent = "Online: "+count;
 }
 
 /* @brief Scrolls the chat to the bottom.
