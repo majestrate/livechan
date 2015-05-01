@@ -113,9 +113,14 @@ func createChat(data []byte, conn *Connection) {
 
     if conn.user.Login(username, password) {
       oc.Notify = "You have logged in as "+username
-      oc.Event = "login";
+      oc.Event = "login:mod";
+      // if we are admin, set the event to admin login
+      if user.IsAdmin() {
+        oc.Event = "login:admin";
+      }
     } else {
       oc.Notify = "Login Failed"
+      oc.Event = "login:fail"
     }
   }
   

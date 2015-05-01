@@ -52,6 +52,11 @@
     color: #34d434;
 }
 
+.livechan_mod_indicator_admin {
+    background: #4a4ad4;
+    color: red;
+}
+
 .livechan_mod_indicator_inactive {
     color: #aaaaaa;
     background: #eef2ff;

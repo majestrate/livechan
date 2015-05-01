@@ -338,13 +338,19 @@ Chat.prototype.sendInput = function(event) {
     var message = inputElem.message.value;
     var name = inputElem.name.value;
     self.readImage(inputElem.file, function(file, filename) {
-      connection.send({
-        message: message,
-        name: name,
-        file: file,
-        filename: filename,
-      });
-      inputElem.file.value = "";
+      // check for file too big
+      // TODO: make configurable
+      if ( file.length > 1024 * 1024 ) {
+        self.notify("file too big");
+      } else {
+        connection.send({
+          message: message,
+          name: name,
+          file: file,
+          filename: filename,
+        });
+        inputElem.file.value = "";
+      }
     });
     //TODO: don't clear this when doing captcha
     inputElem.message.value = '';
@@ -417,10 +423,13 @@ Chat.prototype.initOutput = function() {
       }
     } else {
       // successful mod login event?
-      if ( data.Event == "login" ) {
+      if ( data.Event == "login:mod" ) {
         // set indicator
         self.chatElems.navbar.mod.className = "livechan_mod_indicator_active";
         self.chatElems.navbar.mod.textContent = "Moderator";
+      } else if ( data.Event == "login:admin" ) {
+        self.chatElems.navbar.mod.className = "livechan_mod_indicator_admin";
+        self.chatElems.navbar.mod.textContent = "Admin";
       }
       
       if ( data.Notify ) {
