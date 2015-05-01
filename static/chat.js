@@ -61,7 +61,7 @@ function buildChat(domElem, channel) {
   domElem.appendChild(input);
 
   return {
-    navbar: navbar
+    navbar: navbar,
     output: output,
     input: {
       form: input,
