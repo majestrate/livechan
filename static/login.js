@@ -121,6 +121,18 @@ Captcha.prototype.process = function() {
 }
 
 /**
+ * @brief show the captcha pane
+ */
+Captcha.prototype.show = function () {
+  console.log("hide captcha");
+  var widget = this.widget.widget;
+  if ( widget.style ) {
+    widget.style.zIndex = 5;
+  } else {
+    widget.style = {zIndex: 5};
+  }
+}
+/**
  * @brief hide the captcha pane
  */
 Captcha.prototype.hide = function () {
@@ -130,18 +142,6 @@ Captcha.prototype.hide = function () {
     widget.style.zIndex = -1;
   } else {
     widget.style = {zIndex: -1};
-  }
-}
-/**
- * @brief show the captcha pane
- */
-Captcha.prototype.hide = function () {
-  console.log("show captcha");
-  var widget = this.widget.widget;
-  if ( widget.style ) {
-    widget.style.zIndex = 5;
-  } else {
-    widget.style = {zIndex: 5};
   }
 }
 
