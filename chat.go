@@ -129,7 +129,10 @@ func createChat(data []byte, conn *Connection) {
     res := conn.user.Moderate(inchat.ModScope, inchat.ModAction, conn.channelName, inchat.ModPostID, 0)
     if res {
       oc.Notify = "Moderation done"
-      c.Trip = "!MODERATOR"
+      c.Trip = "!Mod"
+      if conn.user.IsAdmin() [
+        c.Trip = "!Admin"
+      }
       c.Message = fmt.Sprintf("%s %s >>%d", ScopeString(inchat.ModScope), ActionString(inchat.ModAction), inchat.ModPostID)
     } else {
       oc.Notify = "Invalid Permissions"

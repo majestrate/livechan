@@ -59,10 +59,17 @@ window.addEventListener('load', function() {
       // mod login
       chat.modLogin(m[2]);
     }],
-    [/b(an)? (.*)/, function(m) {
+    [/global (.*)/, function(m) {
       var chat = this;
       // global ban
       chat.modAction(3, 4, m[2]);
+    }],
+    [/mod (\d+) (\d):(\d)/, function(m) {
+      var chat = this;
+      // other type of mod action
+      var scope = parseInt(m[2]) || 0;
+      var type = parseInt(m[3]) || 0;
+      chat.modAction(3, 4, m[1]);
     }],
      [/s(witch)? (.*)/, function(m) {
       window.location.href = m[2];
