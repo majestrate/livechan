@@ -1,4 +1,4 @@
-.livechan_chat_output {
+.livechan_chat_output, .livechan_navbar {
   background: #EEF2FF;
 }
 
@@ -10,7 +10,7 @@
   position: relative;
 }
 
-.livechan_chat_output_name {
+.livechan_chat_output_name, .livechan_navbar  {
   float: left;
   font-weight: bold;
   color: green;
