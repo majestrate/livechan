@@ -268,9 +268,8 @@ func captchaServer(w http.ResponseWriter, req *http.Request) {
     // get pre-existing user from session
     user := getUserFromSession(sess)
     if user == nil {
-      // no pre existing user for captcha?
-      http.Error(w, "Internal Server Error", 500)
-      return
+      // create the user
+      user := createUserForSession(sess, req)
     }
 
     if user.IpAddr != addr  {
