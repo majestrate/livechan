@@ -269,7 +269,7 @@ func captchaServer(w http.ResponseWriter, req *http.Request) {
     user := getUserFromSession(sess)
     if user == nil {
       // create the user
-      user := createUserForSession(sess, req)
+      user = createUserForSession(sess, req)
     }
 
     if user.IpAddr != addr  {
