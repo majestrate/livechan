@@ -137,6 +137,7 @@ input, textarea, select {
 }
 
 .livechan_navbar {
+    z-index: 20;
     height: 20px;
 }
 
