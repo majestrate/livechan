@@ -133,7 +133,6 @@ func wsServer(w http.ResponseWriter, req *http.Request) {
     sess.Values["user"] = u
     sess.Save(req, w)
     log.Println(addr, "session has no user for websocket, create a new one")
-    return
   }
 
   // everything is gud
