@@ -247,6 +247,9 @@ function Chat(domElem, channel, options) {
   // show navbar status
   var elem = this.chatElems.navbar.userCount;
   elem.textContent = "Connecting..."
+
+  elem = this.chatElems.navbar.channel;
+  elem.textContent = channel;
   
   this.captcha = new Captcha(this.domElem, this.options);
   this.captcha.hide();

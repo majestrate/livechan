@@ -29,5 +29,6 @@ function buildNavbar(domElem) {
   return {
     userCount: usercount,
     mod: mod,
+    channel: channelLabel,
   };
 }
