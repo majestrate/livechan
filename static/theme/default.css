@@ -1,8 +1,8 @@
-.livechan_chat_output{
+.livechan_chat_output, .livechan_captcha {
   background: #EEF2FF;
 }
 
-.livechan_chat_output_chat, .livechan_captcha, .livechan_navbar{
+.livechan_chat_output_chat, .livechan_navbar {
  background: #D6DAF0;
 }
 
