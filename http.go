@@ -71,12 +71,21 @@ func obtainSession(w http.ResponseWriter, req *http.Request) *sessions.Session {
     return nil
   }
   if sess.IsNew {
+    
     sess.ID = NewSalt()
     sess.Values["user"] = nil
     sess.Save(req, w)
-    path := cfg["prefix"] + req.URL.Path[1:]
-    log.Println(addr, "new session, redirecting to", path)
-    http.Redirect(w, req, path, 301)
+    // no cookie?
+    if len(req.Headers.Get("Cookie")) == 0 {
+      // yas no cookie, redirect
+      path := cfg["prefix"] + req.URL.Path[1:]
+      log.Println(addr, "new session, redirecting to", path)
+      http.Redirect(w, req, path, 301)
+    } else {
+      // nah we got a cookie
+      // return with no redirect
+      return sess
+    }
     return nil
   }
   return sess
