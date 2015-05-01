@@ -55,7 +55,6 @@ function Captcha(domElem, options) {
 
 Captcha.prototype.load = function() {
   var self = this;
-  self.show();
   var xhr = new XMLHttpRequest();
 
   // TODO: https detection
