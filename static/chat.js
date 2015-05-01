@@ -246,6 +246,7 @@ function Chat(domElem, channel, options) {
   this.initOutput();
   this.initInput();
   this.captcha = new Captcha(this.domElem, this.options);
+  this.captcha.hide();
 }
 
 /**
