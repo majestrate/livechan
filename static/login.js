@@ -50,7 +50,6 @@ function Captcha(domElem, options) {
   this.widget = buildCaptcha(domElem, this.prefix);
   var self = this;
   this.widget.button.addEventListener("click", function() { self.process(); });
-  self.hide();
 }
 
 Captcha.prototype.load = function() {
