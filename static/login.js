@@ -125,7 +125,7 @@ Captcha.prototype.process = function() {
  */
 Captcha.prototype.hide = function () {
   console.log("hide captcha");
-  self.widget.style.zIndex = -1;
+  this.widget.style.zIndex = -1;
 }
 
 /**
