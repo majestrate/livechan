@@ -125,7 +125,11 @@ Captcha.prototype.process = function() {
  */
 Captcha.prototype.hide = function () {
   console.log("hide captcha");
-  this.widget.style.zIndex = -1;
+  if ( this.widget.style ) {
+    this.widget.style.zIndex = -1;
+  } else {
+    this.widge.style = {zIndex: -1};
+  }
 }
 
 /**
