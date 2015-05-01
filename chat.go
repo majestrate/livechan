@@ -232,14 +232,7 @@ func (self *InChat) Empty() bool {
 func createJSONs(chats []Chat, out chan []byte) {
   var outChats []OutChat
   for _, chat := range chats {
-    outChat := OutChat{
-      Name: chat.Name,
-      Message: chat.Message,
-      Date: chat.Date,
-      Count: chat.Count,
-      Convo: chat.Convo,
-      FilePath: chat.FilePath,
-    }
+    outChat := chat.ToOutChat()
     outChats = append(outChats, outChat)
   }
   data, err := json.Marshal(&outChats)
