@@ -21,9 +21,6 @@ function buildChat(domElem, channel) {
   var output = document.createElement('div');
   output.className = 'livechan_chat_output';
 
-  var online = document.createElement('div');
-  online.setAttribute('id', 'users_online');
-
   var input = document.createElement('form');
   input.className = 'livechan_chat_input';
   
@@ -48,9 +45,6 @@ function buildChat(domElem, channel) {
   submit.className = 'livechan_chat_input_submit';
   submit.setAttribute('type', 'submit');
   submit.setAttribute('value', 'send');
-
-
-  domElem.appendChild(online);
   input.appendChild(name);
   input.appendChild(file);
   messageDiv.appendChild(message);
