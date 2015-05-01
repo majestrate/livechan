@@ -45,9 +45,18 @@ func (c *Connection) reader() {
     if err != nil {
       break
     }
-    // did we solve the captcha?
-    if c.user.SolvedCaptcha {
-      // ya, create chat
+    addr := c.user.IpAddr
+    // check for global ban
+    if storage.isGlobalBanned(addr) {
+      // tell them they are banned
+      var chat OutChat
+      chat.Notify = "Your address (" + addr + ") has been banned globally from Livechan: "
+      chat.Notify += storage.getGlobalBanReason(addr)
+        // send them the ban notice
+      var buff bytes.Buffer
+      chat.createJSON(&buff)
+      c.send <- buff.Bytes()
+    } else if c.user.SolvedCaptcha {
       go createChat(d, c)
     } else {
       log.Println(c.user.IpAddr, "needs to solve captcha")

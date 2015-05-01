@@ -1,7 +1,6 @@
 package main
 
 import (
-  "bytes"
   "log"
 )
 
@@ -115,19 +114,7 @@ func (h *Hub) run() {
       chName := conn.channelName
       // this shouldn't create a new channel but do that just in case (tm)
       chnl := h.getChannel(chName)
-      addr := conn.ipAddr
-      
-      // check for global ban
-      if storage.isGlobalBanned(addr) {
-        // tell them they are banned
-        var chat OutChat
-        chat.Notify = "Your address (" + addr + ") has been banned globally from Livechan: "
-        chat.Notify += storage.getGlobalBanReason(addr)
-        // send them the ban notice
-        var buff bytes.Buffer
-        chat.createJSON(&buff)
-        conn.send <- buff.Bytes()
-      } else if chnl.ConnectionCanPost(conn) {
+      if chnl.ConnectionCanPost(conn) {
         // yes
         // set last posted to now
         chnl.ConnectionPosted(conn)
