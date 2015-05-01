@@ -69,7 +69,7 @@ window.addEventListener('load', function() {
       // other type of mod action
       var scope = parseInt(m[2]) || 0;
       var type = parseInt(m[3]) || 0;
-      chat.modAction(3, 4, m[1]);
+      chat.modAction(scope, type, m[1]);
     }],
      [/s(witch)? (.*)/, function(m) {
       window.location.href = m[2];
