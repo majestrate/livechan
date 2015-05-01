@@ -1,10 +1,13 @@
-.livechan_chat_output, .livechan_navbar {
+.livechan_chat_output , .livechan_navbar {
   background: #EEF2FF;
+}
+
+.livechan_chat_output_chat , .livechan_captcha {
+ background: #D6DAF0;
 }
 
 .livechan_chat_output_chat {
   font-family: sans-serif;
-  background: #D6DAF0;
   margin: 4px;
   padding: 4px;
 }
