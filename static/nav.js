@@ -22,7 +22,7 @@ function buildNavbar(domElem) {
   container.appendChild(channelLabel);
   container.appendChild(usercount);
 
-  narbar.appendChild(container);
+  navbar.appendChild(container);
   
   domElem.appendChild(navbar);
 
