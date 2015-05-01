@@ -185,7 +185,7 @@ func createChat(data []byte, conn *Connection) {
     oc.createJSON(&buff)
     conn.send <- buff.Bytes()
   }
-  if len(inchat.ModLogin) == 0 && len(c.Message) > 0 {
+  if ! c.Empty() {
     // send the chat if it wasn't a mod login
     h.broadcast <- Message{chat: c, conn: conn}
   }
@@ -225,6 +225,10 @@ func (chat *Chat) toOutChat() OutChat{
 
 func (self *InChat) Empty() bool {
   return len(self.Message) == 0 && len(self.File) == 0 && len(self.ModLogin) == 0 && self.ModPostID == 0
+}
+
+func (self *Chat) Empty() bool {
+  return len(self.Message) == 0 && len(self.File) == 0 
 }
 
 // create a json array of outchats for an array of chats for a given connection

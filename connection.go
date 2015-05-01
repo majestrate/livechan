@@ -27,6 +27,7 @@ type Connection struct {
 
 // explicit close
 func (c *Connection) Close() {
+  log.Println(c.ipAddr, "close connection")
   h.unregister <- c
   c.ws.Close()
 }
