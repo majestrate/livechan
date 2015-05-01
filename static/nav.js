@@ -4,6 +4,7 @@ function buildNavbar(domElem) {
   var navbar = document.createElement("div");
   navbar.className = 'livechan_navbar';
 
+  var container = document.createElement("div");
   // channel name lable
   var channelLabel = document.createElement("span");
   channelLabel.className = 'livechan_channel_label';
@@ -17,10 +18,11 @@ function buildNavbar(domElem) {
   var usercount = document.createElement("span");
   usercount.className = 'livechan_usercount';
 
-  navbar.appendChild(mod);
-  navbar.appendChild(channelLabel);
-  navbar.appendChild(usercount);
+  container.appendChild(mod);
+  container.appendChild(channelLabel);
+  container.appendChild(usercount);
 
+  narbar.appendChild(container);
   
   domElem.appendChild(navbar);
 
