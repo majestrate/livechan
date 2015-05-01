@@ -61,6 +61,14 @@ func getUserFromSession(sess *sessions.Session) *User{
   return nil
 }
 
+func createUserForSession(sess *sessions.Session, req *http.Request) *User {
+  u := new(User)
+  u.IpAddr = ExtractIpv4(req.RemoteAddr)
+  sess.Values["user"] = u
+  return u
+}
+
+
 // check for a session, create one if it does not exist
 func obtainSession(w http.ResponseWriter, req *http.Request) *sessions.Session {
   addr := getRealIP(req)
@@ -71,9 +79,8 @@ func obtainSession(w http.ResponseWriter, req *http.Request) *sessions.Session {
     return nil
   }
   if sess.IsNew {
-    
     sess.ID = NewSalt()
-    sess.Values["user"] = nil
+    _ = createUserForSession(sess, req)
     sess.Save(req, w)
     // no cookie?
     if len(req.Header.Get("Cookie")) == 0 {
@@ -262,7 +269,7 @@ func captchaServer(w http.ResponseWriter, req *http.Request) {
     user := getUserFromSession(sess)
     if user == nil {
       // no pre existing user for captcha?
-      http.Error(w, "Forbidden", 403)
+      http.Error(w, "Internal Server Error", 500)
       return
     }
 
