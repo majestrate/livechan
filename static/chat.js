@@ -340,7 +340,7 @@ Chat.prototype.sendInput = function(event) {
     self.readImage(inputElem.file, function(file, filename) {
       // check for file too big
       // TODO: make configurable
-      if ( file.length > 1024 * 1024 ) {
+      if ( file && file.length > 1024 * 1024 ) {
         self.notify("file too big");
       } else {
         connection.send({
