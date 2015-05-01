@@ -158,7 +158,10 @@ func (self *Channel) Join(conn *Connection) {
 func (self *Channel) ConnectionPosted(conn *Connection) {
   // record post event
   now := time.Now()
-  self.Connections[conn] = now
+  // if this user needs to follow the cooldown rules do the cooldown
+  if conn.user.RequireCooldown() {
+    self.Connections[conn] = now
+  }
   // log it
   log.Println(conn.ipAddr, "posted at", now.Unix())
 }

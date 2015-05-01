@@ -135,3 +135,12 @@ input, textarea, select {
 .livechan_spoiler:hover {
     color: white;
 }
+
+.livechan_mod_indicator_active {
+    background: #3434d4;
+    color: #34d434;
+}
+
+.livechan_mod_indicator_inactive {
+    color: #dfdfdf;
+}

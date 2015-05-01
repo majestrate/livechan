@@ -29,8 +29,8 @@ func main() {
 
   
   // TODO: kinda pointless
-  creds := cfg["admin_creds"]
-  storage.EnsureAdminCreds(creds)
+  // creds := cfg["admin_creds"]
+  // storage.EnsureAdminCreds(creds)
 
   // run hub
   // TODO: shouldn't hub be made in this method?

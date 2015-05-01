@@ -77,6 +77,8 @@ type OutChat struct {
   // error messages / mod events / captcha failure / bans
   // pops up a desktop notification
   Notify string
+  // the name of an event that has been triggered
+  Event string
 }
 
 // parse incoming data into Chat
@@ -111,6 +113,7 @@ func createChat(data []byte, conn *Connection) {
 
     if conn.user.Login(username, password) {
       oc.Notify = "You have logged in as "+username
+      oc.Event = "login";
     } else {
       oc.Notify = "Login Failed"
     }
@@ -121,7 +124,7 @@ func createChat(data []byte, conn *Connection) {
     res := conn.user.Moderate(inchat.ModScope, inchat.ModAction, conn.channelName, inchat.ModPostID, 0)
     if res {
       oc.Notify = "Moderation done"
-      c.Trip = "MODERATOR"
+      c.Trip = "!MODERATOR"
       c.Message = fmt.Sprintf("%s %s >>%d", ScopeString(inchat.ModScope), ActionString(inchat.ModAction), inchat.ModPostID)
     } else {
       oc.Notify = "Invalid Permissions"
@@ -208,6 +211,7 @@ func (chat *Chat) toOutChat() OutChat{
     Count: chat.Count,
     Convo: chat.Convo,
     FilePath: chat.FilePath,
+    Trip: chat.Trip,
   }
 }
 

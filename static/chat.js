@@ -14,6 +14,10 @@
  *         created.
  */
 function buildChat(domElem, channel) {
+  // build the navbar
+  // see nav.js
+  var navbar = buildNavbar(domElem);
+  
   var output = document.createElement('div');
   output.className = 'livechan_chat_output';
 
@@ -57,6 +61,7 @@ function buildChat(domElem, channel) {
   domElem.appendChild(input);
 
   return {
+    navbar: navbar
     output: output,
     input: {
       form: input,
@@ -78,8 +83,7 @@ Connection.prototype.send = function(obj) {
   if (this.ws) {
     var str = JSON.stringify(obj);
     console.log(str);
-    this.ws.send(str);
-    
+    this.ws.send(str);    
   }
 }
 
@@ -245,6 +249,7 @@ function Chat(domElem, channel, options) {
   this.connection = initWebSocket(prefix, this.name);
   this.initOutput();
   this.initInput();
+  
   this.captcha = new Captcha(this.domElem, this.options);
   this.captcha.hide();
 }
@@ -402,7 +407,7 @@ Chat.prototype.initOutput = function() {
           self.notify(data[i].Notify);
         } else {
           if ( data[i].UserCount ) {
-            self.updateUseCount(data[i].UserCount);
+            self.updateUserCount(data[i].UserCount);
           } else {
             var c = self.generateChat(data[i]);
             self.insertChat(c, data[i].Count);
@@ -410,6 +415,13 @@ Chat.prototype.initOutput = function() {
         }
       }
     } else {
+      // successful mod login event?
+      if ( data.Event == "login" ) {
+        // set indicator
+        self.chatElems.navbar.mod.className = "livechan_mod_indicator_active";
+        self.chatElems.navbar.mod.textContent = "Moderator";
+      }
+      
       if ( data.Notify ) {
           if (data.Notify.indexOf("the captcha") > -1 ) {
               self.login();
@@ -446,7 +458,7 @@ Chat.prototype.initOutput = function() {
 /* @brief update the user counter for number of users online
  */
 Chat.prototype.updateUserCount = function(count) {
-  var elem = document.getElementById("users_online");
+  var elem = this.chatElems.navbar.userCount;
   elem.textContent = "users online: "+count;
 }
 
