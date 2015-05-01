@@ -77,7 +77,7 @@ func (user *User) Get(name string) string {
 // do we require this user to follow the cooldown rules?
 // return true if so otherwise false
 func (user *User) RequireCooldown() bool {
-  return ! (user.IsAdmin() || user.Get(globalPropName("bypassCooldown")) == 1 )
+  return ! (user.IsAdmin() || user.GetInt(globalPropName("bypassCooldown")) == 1 )
 }
 
 // return attribute as int
