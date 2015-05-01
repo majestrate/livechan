@@ -74,7 +74,6 @@ func (c *Connection) write(mt int, payload []byte) error {
 /* @brief Write a message if there is one, otherwise ping the client. */
 func (c *Connection) writer() {
   ticker := time.NewTicker(pingPeriod)
-  defer c.Close()
   for {
     select {
     case m, ok := <-c.send:

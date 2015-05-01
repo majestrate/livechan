@@ -166,7 +166,7 @@ func wsServer(w http.ResponseWriter, req *http.Request) {
      Small optimization to not spawn a new one. */
   
   // unregister after writer ends
-  h.unregister <- &c
+  c.Close()
 }
 
 // serve list of channels (?)

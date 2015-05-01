@@ -83,6 +83,7 @@ func (h *Hub) run() {
       for chName := range(h.channels) {
         chnl := h.channels[chName]
         for conn := range(chnl.Connections) {
+          // we should use sessions here instead :x
           if u.IpAddr == conn.user.IpAddr {
             conn.user.MarkSolvedCaptcha()
           }

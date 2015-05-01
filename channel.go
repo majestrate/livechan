@@ -45,8 +45,7 @@ type Channel struct {
 func NewChannel(name string) *Channel {
   chnl := new(Channel)
   chnl.Name = name
-  // TODO: Should this be buffered?
-  chnl.Send = make(chan Chat)
+  chnl.Send = make(chan Chat, 20)
   var fallbackScrollback uint64
   fallbackScrollback = 50
   // if we have set a scrollback amount in our config set it here
