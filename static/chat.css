@@ -132,7 +132,7 @@ input, textarea, select {
     height: 20px;
 }
 
-.livechan_mod_indicator_inactive, .livechan_mod_indicator_active, .livechan_usercount, .livechan_label {
+.livechan_mod_indicator_inactive, .livechan_mod_indicator_active, .livechan_usercount, .livechan_channel_label {
     padding-left: 10px;
     padding-right: 10px;
 }
