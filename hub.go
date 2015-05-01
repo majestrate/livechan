@@ -2,8 +2,6 @@ package main
 
 import (
   "bytes"
-  "fmt"
-  //"errors"
   "log"
 )
 
@@ -72,9 +70,8 @@ func (h *Hub) run() {
 
       // check for mod event
     case ev := <-h.mod:
-      log.Println("Got Mod event: ", fmt.Sprintf("%q", ev))
       // execute the mod event so it doesn't block
-      go storage.ProcessModEvent(ev.Scope, ev.Action, ev.ChannelName, ev.PostID, ev.Expire)
+      go storage.ProcessModEvent(ev)
       
       // check for captcha solved events
     case u := <-h.captcha:

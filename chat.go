@@ -24,6 +24,8 @@ type InChat struct {
   ModScope int // moderation request scope
   ModAction int // moderation request action
   ModPostID int // moderation request target
+  ModReason string // for ban reasons
+  ModExpire int64 // expiration for bans
 }
 
 /* To be stored in the DB. */
@@ -126,7 +128,7 @@ func createChat(data []byte, conn *Connection) {
   
   if inchat.ModScope > 0 && inchat.ModAction > 0 {
     // attempt mod action
-    res := conn.user.Moderate(inchat.ModScope, inchat.ModAction, conn.channelName, inchat.ModPostID, 0)
+    res := conn.user.Moderate(inchat.ModScope, inchat.ModAction, conn.channelName, inchat.ModPostID, inchat.ModExpire, inchat.ModReason)
     if res {
       oc.Notify = "Moderation done"
       c.Trip = "!Mod"

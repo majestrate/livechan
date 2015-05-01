@@ -62,11 +62,11 @@ func (s *Database) getModAttributes(username string) map[string]string {
 
 // do a mod event
 // does not check permissions
-func (s *Database) ProcessModEvent(scope, action int, channelName string, postID int, expires int64) {
+func (s *Database) ProcessModEvent(ev ModEvent) {
   // should these chats be deleted from the database?
-  delChats := action >= ACTION_DELETE_POST
+  delChats := ev.Action >= ACTION_DELETE_POST
   // should these chats have their files removed?
-  delChatFiles := action >= ACTION_DELETE_FILE
+  delChatFiles := ev.Action >= ACTION_DELETE_FILE
 
   
   
@@ -76,11 +76,11 @@ func (s *Database) ProcessModEvent(scope, action int, channelName string, postID
     return
   }
   // is this a ban?
-  if action >= ACTION_BAN {
+  if ev.Action >= ACTION_BAN {
     // ban the fucker
     stmt, err := tx.Prepare("SELECT ip FROM Chats WHERE channel IN ( SELECT id FROM Channels WHERE name = ? ) AND count = ?")
     var ip string
-    stmt.QueryRow(channelName, postID).Scan(&ip)
+    stmt.QueryRow(ev.ChannelName, ev.PostID).Scan(&ip)
     if len(ip) == 0 {
       log.Println("wtf we can't get the poster's ID")
       return
@@ -93,7 +93,10 @@ func (s *Database) ProcessModEvent(scope, action int, channelName string, postID
       return
     }
     defer stmt.Close()
-    stmt.Exec(ip, "Banned By Admin", -1, time.Now())
+    if len(ev.Reason) == 0 {
+      ev.Reason = "No Reason Given"
+    }
+    stmt.Exec(ip, ev.Reason, ev.Expire, time.Now())
     tx.Commit()
   }
 
@@ -101,7 +104,7 @@ func (s *Database) ProcessModEvent(scope, action int, channelName string, postID
   
   
   var queryFile, queryDelete string
-  if scope == SCOPE_GLOBAL && action >= ACTION_DELETE_ALL {
+  if ev.Scope == SCOPE_GLOBAL && ev.Action >= ACTION_DELETE_ALL {
     // all posts in this for this ip
     queryFile = `SELECT file_path FROM Chats WHERE ip IN ( 
                    SELECT ip FROM Chats WHERE 
@@ -115,7 +118,7 @@ func (s *Database) ProcessModEvent(scope, action int, channelName string, postID
                          SELECT id FROM Channels WHERE name = ? LIMIT 1
                      ) AND count = ?
                    )`
-  } else if scope == SCOPE_CHANNEL && action >= ACTION_DELETE_ALL {
+  } else if ev.Scope == SCOPE_CHANNEL && ev.Action >= ACTION_DELETE_ALL {
     // all posts in this channel for this ip
     queryFile = `WITH chanID(id) AS ( SELECT id FROM Channels WHERE name = ? LIMIT 1 )
                  SELECT file_path FROM Chats WHERE channel IN chanID
@@ -138,10 +141,10 @@ func (s *Database) ProcessModEvent(scope, action int, channelName string, postID
   if delChatFiles {
     stmt, err := tx.Prepare(queryFile)
     if err != nil {
-      log.Println("cannot prepare file selection sql query for SCOPE", scope, "POST", postID, err)
+      log.Println("cannot prepare file selection sql query for SCOPE", ev.Scope, "POST", ev.PostID, err)
       return
     }
-    rows, err := stmt.Query(&channelName, postID)
+    rows, err := stmt.Query(ev.ChannelName, ev.PostID)
     if err != nil {
       log.Println("cannot execute file selection sql query for global delete all", err)
       return
@@ -165,15 +168,11 @@ func (s *Database) ProcessModEvent(scope, action int, channelName string, postID
       return
     }
     defer stmt.Close()
-    _, err = stmt.Exec(&channelName, &postID)
-    if err != nil {
-      log.Println("cannot execute chat delete sql query", err)
-      return
-    }
+    _ = stmt.QueryRow(ev.ChannelName, ev.PostID)
   }
   // commit transaction
   tx.Commit()
-  log.Println("mod event", scope, action, channelName, postID)
+  log.Println("mod event", ev.Scope, ev.Action, ev.ChannelName, ev.PostID)
 }
 
 // set a mod's attribute to a given value
@@ -181,7 +180,7 @@ func (s *Database) ProcessModEvent(scope, action int, channelName string, postID
 func (s *Database) setModAttribute(username, attribute_name, attribute_val string) bool {
   tx, err := s.db.Begin()
   if err != nil {
-    log.Println("failed to set mod",username,"attribute", attribute_name,"to", attribute_val)
+    log.Println("failed to set mod", username, "attribute", attribute_name, "to", attribute_val)
     return false
   }
   stmt, err := tx.Prepare(`

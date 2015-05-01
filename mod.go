@@ -76,6 +76,9 @@ type ModEvent struct {
   UserName string
   // expire time
   Expire int64
+  // reason / cause of event
+  // used in ban messages
+  Reason string
 }
 
 

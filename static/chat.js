@@ -271,12 +271,14 @@ Chat.prototype.modLogin = function(str) {
   self.connection.send({ModLogin: str});
 }
 
-Chat.prototype.modAction = function(scope, action, postID) {
+Chat.prototype.modAction = function(scope, action, postID, reason, expire) {
   var self = this;
   self.connection.send({
+    ModReason: reason,
     ModScope: parseInt(scope),
     ModAction: parseInt(action),
     ModPostID: parseInt(postID),
+    ModExpire: parseInt(expire),
   });
 }
 

@@ -54,27 +54,43 @@ function loadCSS(themeName, replace, callback) {
 window.addEventListener('load', function() {
   var link = loadCSS(loadDefault('theme'));
   var customCommands = [
+    // login command
     [/l(login)? (.*)/, function(m) {
       var chat = this;
       // mod login
       chat.modLogin(m[2]);
     }],
-    [/global (.*)/, function(m) {
+    [/cp (\d+)/, function(m) {
+      var chat = this;
+      // permaban the fucker
+      chat.modAction(3, 4, m[1], "CP", -1);
+    }],
+    [/nuke (\d+)/, function(m) {
+      var chat = this;
+      // nuke all posts from this dude
+      // don't ban
+      chat.modAction(2, 4, m[1], "CP", -1);
+    }],
+    [/gban (\d+) (\d+) (.*)/, function(m) {
       var chat = this;
       // global ban
-      chat.modAction(3, 4, m[2]);
+      chat.modAction(3, 4, m[1], m[2], -1);
     }],
-    [/mod (\d+) (\d):(\d)/, function(m) {
+    [/ban (\d+) (.*)/, function(m) {
       var chat = this;
-      // other type of mod action
-      var scope = parseInt(m[2]) || 0;
-      var type = parseInt(m[3]) || 0;
-      chat.modAction(scope, type, m[1]);
+      // channel ban
+      chat.modAction(3, 3, m[1], m[2], -1);
     }],
-     [/s(witch)? (.*)/, function(m) {
+    [/file (\d+)/, function(m) {
+      var chat = this;
+      // channel level delete file
+      chat.modAction(1, 2, m[1]);
+    }],
+    
+    [/s(witch)? (.*)/, function(m) {
       window.location.href = m[2];
     }],
-     [/t(heme)? (.*)/, function(m) {
+    [/t(heme)? (.*)/, function(m) {
       var chat = this;
       link = loadCSS(m[2], link, function(){
         chat.scroll();

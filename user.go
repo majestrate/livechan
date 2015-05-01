@@ -139,12 +139,12 @@ func (user *User) PermitAction(channelName string, scope, action int) bool {
   return false
 }
 
-func (user *User) Moderate(scope, action int, channelName string, postID int, expire int64) bool {
+func (user *User) Moderate(scope, action int, channelName string, postID int, expire int64, reason string) bool {
   // can we moderate?
   if user.PermitAction(channelName, scope, action) {
     // yes we can!
     // send the event to the event hub
-    h.mod <- ModEvent{scope, action, channelName, postID, user.Name, expire}
+    h.mod <- ModEvent{scope, action, channelName, postID, user.Name, expire, reason}
     return true
   }
   // no we cannot do this action
