@@ -71,7 +71,7 @@ window.addEventListener('load', function() {
       // don't ban
       chat.modAction(3, 1, m[1], "nuke", -1);
     }],
-    [/gban (\d+) (\d+) (.*)/, function(m) {
+    [/gban (\d+) "(\w+)" (.*)/, function(m) {
       var chat = this;
       // global ban
       chat.modAction(3, 4, m[1], m[2], -1);
