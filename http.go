@@ -54,7 +54,7 @@ func init() {
 
 func createUserForSession(sess *sessions.Session, req *http.Request) *User {
   var u User
-  u.IpAddr = ExtractIpv4(req.RemoteAddr)
+  u.IpAddr = getRealIP(req)
   sess.Values["user"] = u
   return getUserFromSession(sess, req)
 }
@@ -263,6 +263,7 @@ func captchaServer(w http.ResponseWriter, req *http.Request) {
     user := getUserFromSession(sess, req)
 
     if user.IpAddr != addr  {
+      log.Printf("ip mismatch %s!=%s", user.IpAddr, addr)
       // possible spoofing or harvesting or something bad
       // send bogus 418 teapot response to fuck with it :3
       http.Error(w, "Am I Kawaii uguu~?", 418)
