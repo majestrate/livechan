@@ -55,6 +55,7 @@ function Captcha(domElem, options) {
 
 Captcha.prototype.load = function() {
   var self = this;
+  self.show();
   var xhr = new XMLHttpRequest();
 
   // TODO: https detection
@@ -131,6 +132,18 @@ Captcha.prototype.hide = function () {
     widget.style.zIndex = -1;
   } else {
     widget.style = {zIndex: -1};
+  }
+}
+/**
+ * @brief show the captcha pane
+ */
+Captcha.prototype.hide = function () {
+  console.log("show captcha");
+  var widget = this.widget.widget;
+  if ( widget.style ) {
+    widget.style.zIndex = 5;
+  } else {
+    widget.style = {zIndex: 5};
   }
 }
 
