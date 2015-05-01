@@ -240,20 +240,19 @@ function Chat(domElem, channel, options) {
   } else {
     this.options = {};
   }
-  this.chatElems = buildChat(domElem, channel);
+  this.chatElems = buildChat(this.domElem, this.name);
   var prefix = this.options.prefix || "/";
-  this.connection = initWebSocket(prefix, channel);
+  this.connection = initWebSocket(prefix, this.name);
   this.initOutput();
   this.initInput();
-  
+  this.captcha = new Captcha(this.domElem, this.options);
 }
 
 /**
  * @brief begin login sequence
  */
 Chat.prototype.login = function() {
-  var captcha = new Captcha(this.domElem, this.options);
-  captcha.load();
+  this.captcha.load();
 }
 
 /**

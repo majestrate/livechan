@@ -1,41 +1,42 @@
 
 
 function buildCaptcha(domElem, prefix) {
-    var captcha_widget = document.createElement("div");
-    captcha_widget.className = "livechan_captcha";
-
-    var text = document.createElement("div");
-    text.textContent = "solve the captcha";
-    captcha_widget.appendChild(text);
-
-    var captcha_image = document.createElement("img");
-    captcha_image.className = "livechan_captcha_image";
-    var div = document.createElement("div");
-    div.appendChild(captcha_image);
-    captcha_widget.appendChild(div);
-    
-    var captcha_entry = document.createElement("input");
-    captcha_entry.className = "livechan_captcha_input";
-    var div = document.createElement("div");
-    div.appendChild(captcha_entry);
-    captcha_widget.appendChild(div);
-
-    var captcha_submit = document.createElement("input");
-    captcha_submit.setAttribute("type", "button");
-    captcha_submit.value = "solve";
-    var div = document.createElement("div");
-    div.appendChild(captcha_submit);
-    captcha_widget.appendChild(div);
-
-    domElem.appendChild(captcha_widget);
-    
-    return {
-      widget: captcha_widget,
-      button: captcha_submit,
-      image: captcha_image,
-      entry: captcha_entry,
-      prefix: prefix,
-    }
+  var captcha_widget = document.createElement("div");
+  
+  captcha_widget.className = "livechan_captcha";
+  
+  var text = document.createElement("div");
+  text.textContent = "solve the captcha";
+  captcha_widget.appendChild(text);
+  
+  var captcha_image = document.createElement("img");
+  captcha_image.className = "livechan_captcha_image";
+  var div = document.createElement("div");
+  div.appendChild(captcha_image);
+  captcha_widget.appendChild(div);
+  
+  var captcha_entry = document.createElement("input");
+  captcha_entry.className = "livechan_captcha_input";
+  var div = document.createElement("div");
+  div.appendChild(captcha_entry);
+  captcha_widget.appendChild(div);
+  
+  var captcha_submit = document.createElement("input");
+  captcha_submit.setAttribute("type", "button");
+  captcha_submit.value = "solve";
+  var div = document.createElement("div");
+  div.appendChild(captcha_submit);
+  captcha_widget.appendChild(div);
+  
+  domElem.appendChild(captcha_widget);
+  
+  return {
+    widget: captcha_widget,
+    button: captcha_submit,
+    image: captcha_image,
+    entry: captcha_entry,
+    prefix: prefix,
+  }
 }
 
 function Captcha(domElem, options) {
@@ -124,7 +125,7 @@ Captcha.prototype.process = function() {
  */
 Captcha.prototype.hide = function () {
   console.log("hide captcha");
-  this.widget.widget.style.zIndex = -1;
+  self.widget.style.zIndex = -1;
 }
 
 /**
