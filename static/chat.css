@@ -136,6 +136,10 @@ input, textarea, select {
     color: white;
 }
 
+.livechan_navbar {
+    height: 20px;
+}
+
 .livechan_mod_indicator_active {
     background: #3434d4;
     color: #34d434;
