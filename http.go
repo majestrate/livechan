@@ -76,7 +76,7 @@ func obtainSession(w http.ResponseWriter, req *http.Request) *sessions.Session {
     sess.Values["user"] = nil
     sess.Save(req, w)
     // no cookie?
-    if len(req.Headers.Get("Cookie")) == 0 {
+    if len(req.Header.Get("Cookie")) == 0 {
       // yas no cookie, redirect
       path := cfg["prefix"] + req.URL.Path[1:]
       log.Println(addr, "new session, redirecting to", path)
