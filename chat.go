@@ -185,7 +185,7 @@ func createChat(data []byte, conn *Connection) {
     oc.createJSON(&buff)
     conn.send <- buff.Bytes()
   }
-  if len(inchat.ModLogin) == 0 && len(inchat.Message) > 0 {
+  if len(inchat.ModLogin) == 0 && len(c.Message) > 0 {
     // send the chat if it wasn't a mod login
     h.broadcast <- Message{chat: c, conn: conn}
   }
