@@ -69,7 +69,7 @@ window.addEventListener('load', function() {
       var chat = this;
       // nuke all posts from this dude
       // don't ban
-      chat.modAction(2, 4, m[1], "CP", -1);
+      chat.modAction(3, 1, m[1], "nuke", -1);
     }],
     [/gban (\d+) (\d+) (.*)/, function(m) {
       var chat = this;
