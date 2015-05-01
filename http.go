@@ -51,21 +51,23 @@ func init() {
   }
 }
 
-func getUserFromSession(sess *sessions.Session) *User{
-  val := sess.Values["user"]
-  switch valtype := val.(type) {
-  case *User:
-    return valtype
-  }
-  // no user
-  return nil
-}
 
 func createUserForSession(sess *sessions.Session, req *http.Request) *User {
-  u := new(User)
+  var u User
   u.IpAddr = ExtractIpv4(req.RemoteAddr)
   sess.Values["user"] = u
-  return u
+  return getUserFromSession(sess, req)
+}
+
+
+func getUserFromSession(sess *sessions.Session, req *http.Request) *User{
+  val := sess.Values["user"]
+  if u , ok := val.(User); ok {
+    return &u;
+  }
+  // no user
+  // create it
+  return createUserForSession(sess, req)
 }
 
 
@@ -132,15 +134,7 @@ func wsServer(w http.ResponseWriter, req *http.Request) {
   }
 
   
-  u := getUserFromSession(sess)
-  // if we have no user create one and redirect back to ourselves
-  if u == nil {
-    u = CreateUser()
-    u.IpAddr = addr
-    sess.Values["user"] = u
-    sess.Save(req, w)
-    log.Println(addr, "session has no user for websocket, create a new one")
-  }
+  u := getUserFromSession(sess, req)
 
   // everything is gud
   // upgrade to web socket
@@ -266,11 +260,7 @@ func captchaServer(w http.ResponseWriter, req *http.Request) {
     addr :=  getRealIP(req)
 
     // get pre-existing user from session
-    user := getUserFromSession(sess)
-    if user == nil {
-      // create the user
-      user = createUserForSession(sess, req)
-    }
+    user := getUserFromSession(sess, req)
 
     if user.IpAddr != addr  {
       // possible spoofing or harvesting or something bad
