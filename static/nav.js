@@ -27,13 +27,13 @@ function LivechanNavbar(domElem) {
   this.status = document.createElement("span");
   this.status.className = 'livechan_navbar_status';
 
-  container.appendChild(mod);
-  container.appendChild(channelLabel);
-  container.appendChild(usercount);
+  container.appendChild(this.mod);
+  container.appendChild(this.channel);
+  container.appendChild(this.status);
 
   navbar.appendChild(container);
   
-  domElem.appendChild(navbar);
+  domElem.appendChild(this.navbar);
 
 }
 
