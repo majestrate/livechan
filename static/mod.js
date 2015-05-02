@@ -21,6 +21,13 @@ var modCommands = [
   },
    "channel level ban+nuke", "/cnuke postnum reason goes here",
   ],
+  [/purge (\d+) (.*)/, function(m) {
+    var chat = this;
+    // channel ban + nuke files
+    chat.modAction(2, 9, m[1], m[2], -1);
+  },
+   "channel level ban+nuke", "/cnuke postnum reason goes here",
+  ],
   [/gnuke (\d+) (.*)/, function(m) {
     var chat = this;
     // global ban + nuke with reason
