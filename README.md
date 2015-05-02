@@ -1,6 +1,12 @@
 # livechan
 A chat server written in Go.
 
+### Dependancies
+
+* go 1.4
+* sqlite 3.8.9 ( previous versions don't have a certain bugfix we need )
+
+
 ### Installation
 
 - Install Go.
@@ -41,8 +47,3 @@ go run *.go
 ```
 - Open a browser and go to `localhost:18080`.
 
-
-
-TODO:
-
-* use x-forwarded-for header for ip detection
