@@ -162,7 +162,6 @@ func (s *Database) ProcessModEvent(ev ModEvent) {
   }
   // do we want to delete chats?
   if delChats {
-    log.Println("execute", queryDelete)
     stmt, err := tx.Prepare(queryDelete)
     if err != nil {
       log.Println("cannot prepare chat delete sql query", err)
