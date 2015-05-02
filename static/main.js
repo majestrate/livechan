@@ -53,49 +53,7 @@ function loadCSS(themeName, replace, callback) {
 /* Initialization functions called here. */
 window.addEventListener('load', function() {
   var link = loadCSS(loadDefault('theme'));
-  var customCommands = [
-    // login command
-    [/l(login)? (.*)/, function(m) {
-      var chat = this;
-      // mod login
-      chat.modLogin(m[2]);
-    }],
-    [/cp (\d+)/, function(m) {
-      var chat = this;
-      // permaban the fucker
-      chat.modAction(3, 4, m[1], "CP", -1);
-    }],
-    [/cnuke (\d+) (.*)/, function(m) {
-      var chat = this;
-      // channel ban + nuke files
-      chat.modAction(2, 4, m[1], m[2], -1);
-    }],
-    [/gnuke (\d+) (.*)/, function(m) {
-      var chat = this;
-      // global ban + nuke with reason
-      chat.modAction(3, 4, m[1], m[2], -1);
-    }],
-    [/gban (\d+) (.*)/, function(m) {
-      var chat = this;
-      // global ban with reason
-      chat.modAction(3, 3, m[1], m[2], -1);
-    }],
-    [/cban (\d+) (.*)/, function(m) {
-      var chat = this;
-      // channel ban with reason
-      chat.modAction(2, 3, m[1], m[2], -1);
-    }],
-    [/dpost (\d+)/, function(m) {
-      var chat = this;
-      // channel level delete post
-      chat.modAction(1, 2, m[1]);
-    }],
-    [/dfile (\d+)/, function(m) {
-      var chat = this;
-      // channel level delete file
-      chat.modAction(1, 1, m[1]);
-    }],
-    
+  var customCommands = [    
     [/s(witch)? (.*)/, function(m) {
       window.location.href = m[2];
     }],

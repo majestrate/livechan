@@ -16,7 +16,11 @@
 function buildChat(domElem, channel) {
   // build the navbar
   // see nav.js
-  var navbar = buildNavbar(domElem);
+  var navbar = new LivechanNavbar(domElem);
+
+  // build the notification system
+  // see notify.js
+  var notify = new LivechanNotify(domElem);
   
   var output = document.createElement('div');
   output.className = 'livechan_chat_output';
@@ -55,6 +59,7 @@ function buildChat(domElem, channel) {
   domElem.appendChild(input);
 
   return {
+    notify: notify,
     navbar: navbar,
     output: output,
     input: {
@@ -221,7 +226,12 @@ var messageRules = [
   [/\r?\n/g, function(m) {
     return document.createElement('br');
   }],
-
+  [/==(.*)==/g, function(m) {
+    out = document.createElement("span");
+    out.className = "livechan_redtext";
+    out.textContent = m[1];
+    return out;
+  }
 ]
 
 /* @brief Creates a chat.
@@ -229,6 +239,8 @@ var messageRules = [
  * @param domElem The element to populate with chat
  *        output div and input form.
  * @param channel The channel to bind the chat to.
+ *
+ * @param options Channel Specific options
  */
 function Chat(domElem, channel, options) {
   this.name = channel;
@@ -245,12 +257,12 @@ function Chat(domElem, channel, options) {
   this.initInput();
 
   // show navbar status
-  var elem = this.chatElems.navbar.userCount;
-  elem.textContent = "Connecting..."
+  this.chatElems.navbar.updateStatus("Connecting...");
 
-  elem = this.chatElems.navbar.channel;
-  elem.textContent = channel;
-  
+  // set navbar channel name
+  this.chatElems.navbar.setChannel(this.name);
+
+  // create captcha and hide it
   this.captcha = new Captcha(this.domElem, this.options);
   this.captcha.hide();
 }
@@ -324,13 +336,30 @@ Chat.prototype.sendInput = function(event) {
   var connection = this.connection;
   var self = this;
     
-  if (inputElem.message.value[0] == '/' && self.options.customCommands) {
-    for (var i in self.options.customCommands) {
-      var regexPair = self.options.customCommands[i];
-      var match = regexPair[0].exec(inputElem.message.value.slice(1));
+  if (inputElem.message.value[0] == '/') {
+    var inp = inputElem.message.value;
+    var helpRegex = /(help)? (.*)/;
+    var helpMatch = helpRegex.exec(inp.slice(1));
+    if (helpMatch) {
+      
+    }
+    if ( self.options.customCommands ) {
+      for (var i in self.options.customCommands) {
+        var regexPair = self.options.customCommands[i];
+        var match = regexPair[0].exec(inp.slice(1));
+        if (match) {
+          (regexPair[1]).call(self, match);
+          inputElem.message.value = '';
+        }
+      }
+    }
+    // modCommands is defined in mod.js
+    for ( var i in modCommands ) {
+      var command = modCommands[i];
+      var match = command[0].exec(inp.slice(1));
       if (match) {
-        (regexPair[1]).call(self, match);
-        inputElem.message.value = '';
+        (command[1]).call(self, match);
+        // don't clear input for mod command
       }
     }
     event.preventDefault();
@@ -393,8 +422,27 @@ Chat.prototype.initInput = function() {
   inputElem.message.focus();
 }
 
+
+/* @brief show a notification to the user */
 Chat.prototype.notify = function(message) {
-    new Notify("livechan", { body: message , notifyShow: function() {}}).show();
+  // show notification pane
+  this.showNotifyPane();
+
+  var notifyPane = this.chatElems.notify;
+
+  notifyPane.inform(message);
+}
+
+/* @brief show the notification pane */
+Chat.prototype.showNotifyPane = function () {
+  var pane = this.chatElems.notify.pane;
+  pane.style.zIndex = 5;
+}
+
+/* @brief hide the notification pane */
+Chat.prototype.showNotifyPane = function () {
+  var pane = this.chatElems.notify.pane;
+  pane.style.zIndex = -1;
 }
 
 Chat.prototype.error = function(message) {
@@ -424,26 +472,22 @@ Chat.prototype.initOutput = function() {
         }
       }
     } else {
-      // successful mod login event?
-      if ( data.Event == "login:mod" ) {
-        // set indicator
-        self.chatElems.navbar.mod.className = "livechan_mod_indicator_active";
-        self.chatElems.navbar.mod.textContent = "Moderator";
-      } else if ( data.Event == "login:admin" ) {
-        self.chatElems.navbar.mod.className = "livechan_mod_indicator_admin";
-        self.chatElems.navbar.mod.textContent = "Admin";
+
+      if ( data.Event ) {
+        this.chatElems.navbar.onLivechanEvent(data.Event);
+        this.chatElems.notify.onLivechanEvent(data.Event);
       }
       
       if ( data.Notify ) {
-          if (data.Notify.indexOf("the captcha") > -1 ) {
-              self.login();
-          } else {
-            self.notify(data.Notify);
-          }
+        if (data.Notify.indexOf("the captcha") > -1 ) {
+          self.login();
+        }
+        this.chatElems.navbar.onLivechanNotify(data.Notify);
+        this.chatElems.notify.onLivechanNotify(data.Notify);
       } else {
         // user join / part
         if ( data.UserCount > 0 ) {
-          self.updateUserCount(data.UserCount);
+          self.navbar.updateUsers(data.UserCount);
         } else {
           var c = self.generateChat(data);
           self.insertChat(c, data.Count);
