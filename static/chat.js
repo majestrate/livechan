@@ -232,7 +232,28 @@ var messageRules = [
     out.textContent = m[1];
     return out;
   }],
-];
+]
+/* @brief Creates a chat.
+ *
+ * @param domElem The element to populate with chat
+ *        output div and input form.
+ * @param channel The channel to bind the chat to.
+ *
+ * @param options Channel Specific options
+ */
+function Chat(domElem, channel, options) {
+  this.name = channel;
+  this.domElem = domElem;
+  if (options) {
+    this.options = options;
+  } else {
+    this.options = {};
+  }
+  this.chatElems = buildChat(this.domElem, this.name);
+  var prefix = this.options.prefix || "/";
+  this.connection = initWebSocket(prefix, this.name);
+  this.initOutput();
+  this.initInput();
   // set navbar channel name
   this.chatElems.navbar.setChannel(this.name);
 
