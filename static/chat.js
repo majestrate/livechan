@@ -232,7 +232,8 @@ var messageRules = [
     out.textContent = m[1];
     return out;
   }
-]
+  ]
+];
 
 /* @brief Creates a chat.
  *
