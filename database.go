@@ -168,7 +168,10 @@ func (s *Database) ProcessModEvent(ev ModEvent) {
       return
     }
     defer stmt.Close()
-    _ = stmt.QueryRow(ev.ChannelName, ev.PostID)
+    _, err = stmt.Exec(ev.ChannelName, ev.PostID)
+    if err != nil {
+      log.Println("cannot execute chat delete sql query", err)
+    }
   }
   // commit transaction
   tx.Commit()
