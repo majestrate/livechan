@@ -120,12 +120,12 @@ func (s *Database) ProcessModEvent(ev ModEvent) {
                    )`
   } else if ev.Scope == SCOPE_CHANNEL && ev.Action >= ACTION_DELETE_ALL {
     // all posts in this channel for this ip
-    queryFile = `WITH chanID(id) AS ( SELECT id FROM Channels WHERE name = ? LIMIT 1 )
-                 SELECT file_path FROM Chats WHERE channel IN chanID
-                 AND ip IN ( SELECT ip FROM Chats WHERE channel IN chanID AND count = ? )`
-    queryDelete = `WITH chanID(id) AS ( SELECT id FROM Channels WHERE name = ? LIMIT 1 )
-                   DELETE FROM Chats WHERE channel IN chanID
-                   AND ip IN ( SELECT ip FROM Chats WHERE channel IN chanID AND count = ? )`
+    queryFile = `WITH chan(id) AS ( SELECT id FROM Channels WHERE name = ?)
+                 SELECT file_path FROM Chats WHERE channel IN chan
+                 AND ip IN ( SELECT ip FROM Chats WHERE channel IN chan AND count = ? )`
+    queryDelete = `WITH chan(id) AS ( SELECT id FROM Channels WHERE name = ? )
+                   DELETE FROM Chats WHERE channel IN chan
+                   AND ip IN ( SELECT ip FROM Chats WHERE channel IN chan AND count = ? )`
   } else {
     // this post explicitly
     queryFile = `SELECT file_path FROM Chats WHERE channel IN (
