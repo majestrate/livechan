@@ -80,11 +80,11 @@ input, textarea, select {
 }
 
 .livechan_chat_output_date {
-  margin: 0 4px;
+    margin: 0 4px;
 }
 
 .livechan_chat_output_count:hover {
-  cursor: pointer;
+    cursor: pointer;
 }
 
 .livechan_chat_capcode {
