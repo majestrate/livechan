@@ -323,11 +323,14 @@ func (s *Database) insertChat(chnl *Channel, chat *Chat) {
   
   stmt, err = tx.Prepare(`UPDATE Chats SET file_path = '' WHERE chat_date NOT IN ( 
                             SELECT chat_date FROM Chats ORDER BY chat_date DESC LIMIT ? ) 
-                          AND channel = ?)`)
+                          AND channel = ?`)
   if err != nil {
     log.Println("cannot prepare query for reset filepath on old posts", err)
+    return
   }
+  defer stmt.Close()
   _, err = stmt.Exec(chnl.Scrollback, channelId)
+  
   tx.Commit()
   if err != nil {
     log.Println("Error: could not insert chat", err);
