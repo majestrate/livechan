@@ -123,9 +123,9 @@ func (s *Database) ProcessModEvent(ev ModEvent) {
     queryFile = `WITH chan(id) AS ( SELECT id FROM Channels WHERE name = ?)
                  SELECT file_path FROM Chats WHERE channel IN chan
                  AND ip IN ( SELECT ip FROM Chats WHERE channel IN chan AND count = ? )`
-    queryDelete = `WITH chan(id) AS ( SELECT id FROM Channels WHERE name = ? )
-                   DELETE FROM Chats WHERE channel IN chan
-                   AND ip IN ( SELECT ip FROM Chats WHERE channel IN chan AND count = ? )`
+    queryDelete = `WITH chan(id) AS ( SELECT id FROM Channels WHERE name = ? ) 
+                   DELETE FROM Chats WHERE channel IN chan AND ip IN ( 
+                   SELECT ip FROM Chats WHERE channel IN chan AND count = ?)`
   } else {
     // this post explicitly
     queryFile = `SELECT file_path FROM Chats WHERE channel IN (
@@ -162,6 +162,7 @@ func (s *Database) ProcessModEvent(ev ModEvent) {
   }
   // do we want to delete chats?
   if delChats {
+    log.Println("execute", queryDelete)
     stmt, err := tx.Prepare(queryDelete)
     if err != nil {
       log.Println("cannot prepare chat delete sql query", err)
