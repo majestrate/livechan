@@ -4,7 +4,7 @@
  * @param domElem root element to put widget in
  */
 function buildNotifyPane(domElem) {
-  var pane = document.creatElement("div");
+  var pane = document.createElement("div");
   pane.className = "livechan_notify_pane";
   domElem.appendChild(pane);
   return pane;
