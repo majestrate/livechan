@@ -234,32 +234,6 @@ var messageRules = [
   }
   ]
 ];
-
-/* @brief Creates a chat.
- *
- * @param domElem The element to populate with chat
- *        output div and input form.
- * @param channel The channel to bind the chat to.
- *
- * @param options Channel Specific options
- */
-function Chat(domElem, channel, options) {
-  this.name = channel;
-  this.domElem = domElem;
-  if (options) {
-    this.options = options;
-  } else {
-    this.options = {};
-  }
-  this.chatElems = buildChat(this.domElem, this.name);
-  var prefix = this.options.prefix || "/";
-  this.connection = initWebSocket(prefix, this.name);
-  this.initOutput();
-  this.initInput();
-
-  // show navbar status
-  this.chatElems.navbar.updateStatus("Connecting...");
-
   // set navbar channel name
   this.chatElems.navbar.setChannel(this.name);
 
@@ -475,20 +449,20 @@ Chat.prototype.initOutput = function() {
     } else {
 
       if ( data.Event ) {
-        this.chatElems.navbar.onLivechanEvent(data.Event);
-        this.chatElems.notify.onLivechanEvent(data.Event);
+        self.chatElems.navbar.onLivechanEvent(data.Event);
+        self.chatElems.notify.onLivechanEvent(data.Event);
       }
       
       if ( data.Notify ) {
         if (data.Notify.indexOf("the captcha") > -1 ) {
           self.login();
         }
-        this.chatElems.navbar.onLivechanNotify(data.Notify);
-        this.chatElems.notify.onLivechanNotify(data.Notify);
+        self.chatElems.navbar.onLivechanNotify(data.Notify);
+        self.chatElems.notify.onLivechanNotify(data.Notify);
       } else {
         // user join / part
         if ( data.UserCount > 0 ) {
-          self.navbar.updateUsers(data.UserCount);
+          self.chatElems.navbar.updateUsers(data.UserCount);
         } else {
           var c = self.generateChat(data);
           self.insertChat(c, data.Count);
