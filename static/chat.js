@@ -231,8 +231,7 @@ var messageRules = [
     out.className = "livechan_redtext";
     out.textContent = m[1];
     return out;
-  }
-  ]
+  }],
 ];
   // set navbar channel name
   this.chatElems.navbar.setChannel(this.name);
