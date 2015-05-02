@@ -320,14 +320,7 @@ func (s *Database) insertChat(chnl *Channel, chat *Chat) {
       delchat.DeleteFile()
     }
   }
-  
-  stmt, err = tx.Prepare(`DELETE FROM Chats WHERE chat_date NOT IN ( SELECT chat_date FROM Chats ORDER BY chat_date DESC LIMIT ? ) AND channel = ?`) 
-  if err != nil {
-    log.Println("cannot rollover chat", err)
-    return
-  }
-  defer stmt.Close()
-  _, err = stmt.Exec(chnl.Scrollback, channelId)
+
   tx.Commit()
   if err != nil {
     log.Println("Error: could not insert chat", err);
