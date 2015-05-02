@@ -31,7 +31,7 @@ function LivechanNavbar(domElem) {
   container.appendChild(this.channel);
   container.appendChild(this.status);
 
-  navbar.appendChild(container);
+  this.navbar.appendChild(container);
   
   domElem.appendChild(this.navbar);
 
