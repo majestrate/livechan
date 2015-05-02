@@ -69,8 +69,8 @@ func (h *Hub) run() {
 
       // check for mod event
     case ev := <-h.mod:
-      // execute the mod event so it doesn't block
-      go storage.ProcessModEvent(ev)
+      // execute the mod event 
+      storage.ProcessModEvent(ev)
       
       // check for captcha solved events
     case u := <-h.captcha:
