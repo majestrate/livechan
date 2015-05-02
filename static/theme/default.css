@@ -47,17 +47,17 @@
 }
 
 
-.livechan_mod_indicator_active {
+.livechan_navbar_mod_indicator_active {
     background: #4a4ad4;
     color: #34d434;
 }
 
-.livechan_mod_indicator_admin {
+.livechan_navbar_mod_indicator_admin {
     background: #4a4ad4;
     color: red;
 }
 
-.livechan_mod_indicator_inactive {
+.livechan_navbar_mod_indicator_inactive {
     color: #aaaaaa;
     background: #eef2ff;
 }
