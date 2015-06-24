@@ -263,12 +263,12 @@ function ConvoBar(domElem) {
 /* @brief update the convo bar
  * @param convoId the name of this covnorsattion
  */
-ConvoBar.prototype.update = function(convo, bump=true) {
+ConvoBar.prototype.update = function(convo, sage) {
   var self = this;
   if ( self.holder[convos] === undefined ) {
     // register convo
     self.registerConvo(convo);
-  } else if (bump) {
+  } else if (!sage) {
     // bump existing convo
     var convoId = self.getConvoID(convo);
     var convoElem = document.getElementById("livechan_convobar_item_"+convoId);
