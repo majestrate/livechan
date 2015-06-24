@@ -95,12 +95,8 @@ Connection.prototype.send = function(obj) {
 
 Connection.prototype.onmessage = function(callback) {
   this.ws.onmessage = function(event) {
-    try {
-      var data = JSON.parse(event.data);
-      callback(data);
-    } catch (e) {
-      /* Ignore the error. */
-    }
+    var data = JSON.parse(event.data);
+    callback(data);
   }
 }
 
@@ -263,12 +259,12 @@ function ConvoBar(domElem) {
 /* @brief update the convo bar
  * @param convoId the name of this covnorsattion
  */
-ConvoBar.prototype.update = function(convo, sage) {
+ConvoBar.prototype.update = function(convo) {
   var self = this;
   if ( self.holder[convos] === undefined ) {
     // register convo
     self.registerConvo(convo);
-  } else if (!sage) {
+  } else {
     // bump existing convo
     var convoId = self.getConvoID(convo);
     var convoElem = document.getElementById("livechan_convobar_item_"+convoId);
@@ -667,6 +663,7 @@ Chat.prototype.insertChat = function(chat, number) {
  */
 Chat.prototype.generateChat = function(data) {
   var self = this;
+
   var chat = document.createElement('div');
 
   // update the convo bar before we generate this chat
