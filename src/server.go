@@ -42,6 +42,9 @@ func main() {
 
   // ensure that initial channels are there
   storage.ensureChannel("General")
+
+  storage.EnsureAdminCreds(cfg["admin_creds"])
+
   
   // initialize imagick for thumbnails
   log.Println("initialize imagick")
