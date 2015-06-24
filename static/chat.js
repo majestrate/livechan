@@ -294,7 +294,7 @@ ConvoBar.prototype.registerConvo = function(convo) {
   // make a new entry in the convo bar
   var elem = document.createElement("div");
   elem.className = "livechan_convobar_item";
-  elem.setAttribute("livechan_convobar_item_"+ self.holder[convo]);
+  elem.setAttribute("id", "livechan_convobar_item_"+ self.holder[convo]);
   elem.appendChild(document.createTextNode(convo));
   // prepend the element
   self.elems.children.unshift(elem);
