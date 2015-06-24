@@ -674,7 +674,7 @@ Chat.prototype.generateChat = function(data) {
   // update the convo bar before we generate this chat
   self.chatElems.convobar.update(data.Convo);
 
-  var convo = self.chatElems.convobar.getConvoID(data.Convo);
+  var convo = self.chatElems.convobar.holder[data.Convo];
   chat.className = 'livechan_chat_output_chat livechan_chat_convo_' + convo;
   var convoLabel = document.createElement('span');
   convoLabel.className = 'livechan_convo_label';
