@@ -280,6 +280,7 @@ ConvoBar.prototype.update = function(convo) {
   * @param convo the name of the convo
  */
 ConvoBar.prototype.registerConvo = function(convo) {
+  var self = this;
   var max_id = 0;
   // get the highest convo id
   for ( c in self.holder ) {
