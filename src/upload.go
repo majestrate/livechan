@@ -24,11 +24,12 @@ func genUploadFilename(filename string) string {
 
 // handle file upload
 func handleUpload(fname string, data []byte) {
-
+  upload_dir := cfg["upload_dir"]
+  thumbs_dir := cfg["thumbs_dir"]
   // get the path for the original image
-  osfname := filepath.Join("upload", fname)
+  osfname := filepath.Join(upload_dir, fname)
   // get the path for the thumbnail
-  thumbnail := filepath.Join("thumbs", fname)
+  thumbnail := filepath.Join(thumbs_dir, fname)
   err := processImage(fname, osfname, thumbnail, data)
   // clear data
   if err != nil {

@@ -9,6 +9,8 @@ import (
   "log"
   "fmt"
   "io"
+  "encoding/json"
+  "path/filepath"
 )
 
 // websocket upgrader
@@ -47,7 +49,7 @@ func init() {
     // 60 minutes sessions
     MaxAge: 1000 * 60,
     // TODO: fix this
-  HttpOnly: true,
+    HttpOnly: true,
   }
 }
 
@@ -191,14 +193,24 @@ func convoServer(w http.ResponseWriter, req *http.Request) {
     http.Error(w, "Method not allowed", 405)
     return
   }
-  //w.Header().Set("Content-Type", "text/html; charset=utf-8")
-  //fmt.Fprintf(w, "%+v %s", storage.getConvos(req.URL.Path[8:]), req.URL.Path[8:]);
-  http.Error(w, "No Converstations page made yet", 404)
+  w.Header().Set("Content-Type", "text/json; charset=utf-8")
+  // get the channel nane
+  channel := req.URL.Path[7+len(cfg["prefix"]):]
+  // get the convos for this channel
+  convos := storage.getConvos(channel)
+
+  // encode/write the response
+  enc := json.NewEncoder(w)
+  enc.Encode(convos)
+  
 }
 
 // serve registration page
 func handleRegistrationPage(w http.ResponseWriter, req *http.Request) {
-  http.Error(w, "This channel is not made and No registration page is made, yet!", 404)
+  // http.Error(w, "This channel is not made and No registration page is made, yet!", 404)
+  w.Header().Set("Content-Type", "text/html; charset=utf-8")
+  f := filepath.Join(cfg["webroot_dir"], "register.html")
+  http.ServeFile(w, req, f)
 }
 
 // serve root page
@@ -238,7 +250,8 @@ func htmlServer(w http.ResponseWriter, req *http.Request) {
   
   // write out index.html
   w.Header().Set("Content-Type", "text/html; charset=utf-8")
-  http.ServeFile(w, req, "index.html")
+  f := filepath.Join(cfg["webroot_dir"], "index.html")
+  http.ServeFile(w, req, f)
 }
 
 // serve captcha images and solver
@@ -330,11 +343,12 @@ func staticServer(w http.ResponseWriter, req *http.Request) {
   if sess == nil {
     return
   }
-  path := req.URL.Path[1:]
+  path := req.URL.Path[6+len(cfg["prefix"]):]
   // prevent file tranversal
   if strings.Contains(path, "..") {
     http.Error(w, "Not Found", 404)
   } else {
+    path = filepath.Join(cfg["static_dir"], path)
     http.ServeFile(w, req, path)
   }
 }

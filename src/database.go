@@ -263,6 +263,42 @@ func (s *Database) insertConvo(channelId int, convoName string) {
   log.Println("new convo for", channelId, convoName)
 }
 
+// ensure that a channel exists
+// create the channel if it is not there
+func (s *Database) ensureChannel(channelName string) {
+  stmt, err := s.db.Prepare("SELECT COUNT(*) FROM Channels WHERE name = ?")
+  if err != nil {
+    log.Println("cannot prepare query for checking if channel is there", err)
+    return
+  }
+  defer stmt.Close()
+
+  var numChans int64
+  stmt.QueryRow(channelName).Scan(&numChans)
+  
+  if numChans == 0 {
+    log.Println("Create Channel", channelName)
+    tx, err := s.db.Begin()
+    if err != nil {
+      log.Println("cannot create transaction for ensuring channel", err)
+      return
+    }
+    // create the channel since it's not there
+    stmt, err = tx.Prepare("INSERT INTO Channels(name) VALUES(?)")
+    if err != nil {
+      log.Println("failed to prepare query to insert channel", err)
+      return
+    }
+    defer stmt.Close()
+    _, err = stmt.Exec(channelName)
+    if err != nil {
+      log.Println("failed to execute query to insert channel", err)
+      return
+    }
+    tx.Commit()
+  }
+}
+
 func (s *Database) insertChat(chnl *Channel, chat *Chat) {
   /* Get the ids. */
   channelId := s.getChatChannelId(chnl.Name)

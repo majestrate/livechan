@@ -25,13 +25,6 @@ func main() {
     BanTor()
   }
 
-  
-
-  
-  // TODO: kinda pointless
-  // creds := cfg["admin_creds"]
-  // storage.EnsureAdminCreds(creds)
-
   // run hub
   // TODO: shouldn't hub be made in this method?
   go h.run()
@@ -45,6 +38,10 @@ func main() {
   http.HandleFunc("/static/", staticServer)
   http.HandleFunc("/captcha.json", captchaServer)
   http.Handle("/captcha/", captcha.Server(captcha.StdWidth, captcha.StdHeight))
+
+
+  // ensure that initial channels are there
+  storage.ensureChannel("General")
   
   // initialize imagick for thumbnails
   log.Println("initialize imagick")
