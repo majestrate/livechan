@@ -22,10 +22,8 @@ function buildChat(domElem, channel) {
   // see notify.js
   var notify = new LivechanNotify(domElem);
 
-  var outputWrapper = document.createElement('div');
-  var output = document.createElement('span');
-  outputWrapper.className = 'livechan_chat_output';
-  outputWrapper.appendChild(output);
+  var output = document.createElement('div');
+  output.className = 'livechan_chat_output';
   
   var input = document.createElement('form');
   input.className = 'livechan_chat_input';
@@ -57,11 +55,10 @@ function buildChat(domElem, channel) {
   messageDiv.appendChild(message);
   input.appendChild(messageDiv);
   input.appendChild(submit);
-  
-  domElem.appendChild(outputWrapper);
+  var convobar = new ConvoBar(domElem);
+  domElem.appendChild(output);
   domElem.appendChild(input);
   // inject convobar
-  var convobar = new ConvoBar(outputWrapper);
   
   
   return {
