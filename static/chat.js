@@ -269,7 +269,7 @@ ConvoBar.prototype.update = function(convo) {
     var convoId = self.holder[convo];
     var convoElem = document.getElementById("livechan_convobar_item_"+convoId);
     var convoParent = convoElem.parentElement;
-    convoParent.removeChild(convoElement);
+    convoParent.removeChild(convoElem);
     convoParent.children.unshift(conovElem);
   }
 }
