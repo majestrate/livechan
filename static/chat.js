@@ -21,10 +21,12 @@ function buildChat(domElem, channel) {
   // build the notification system
   // see notify.js
   var notify = new LivechanNotify(domElem);
-  
-  var output = document.createElement('div');
-  output.className = 'livechan_chat_output';
 
+  var outputWrapper = document.createElement('div');
+  var output = document.createElement('span');
+  outputWrapper.className = 'livechan_chat_output';
+  outputWrapper.appendChild(output);
+  
   var input = document.createElement('form');
   input.className = 'livechan_chat_input';
   
@@ -49,16 +51,21 @@ function buildChat(domElem, channel) {
   submit.className = 'livechan_chat_input_submit';
   submit.setAttribute('type', 'submit');
   submit.setAttribute('value', 'send');
+
   input.appendChild(name);
   input.appendChild(file);
   messageDiv.appendChild(message);
   input.appendChild(messageDiv);
   input.appendChild(submit);
   
-  domElem.appendChild(output);
+  domElem.appendChild(outputWrapper);
   domElem.appendChild(input);
-
+  // inject convobar
+  var convobar = new ConvoBar(outputWrapper);
+  
+  
   return {
+    convobar : convobar,
     notify: notify,
     navbar: navbar,
     output: output,
@@ -233,6 +240,105 @@ var messageRules = [
     return out;
   }],
 ]
+
+/* @brief build the convorsation bar's elements
+*/
+function buildConvoBar(domElem) {
+  var elem = document.createElement("span");
+  elem.className = "livechan_convobar_root";
+  domElem.appendChild(domElem);
+  return elem;
+}
+
+/* @brief create the chat's convorsation bar
+ * @param domElem the element to place everything in
+ */
+function ConvoBar(domElem) {
+  this.holder = {};
+  this.domElem = domElem;
+  this.elems = buildConvoBar(domElem);
+}
+
+
+/* @brief update the convo bar
+ * @param convoId the name of this covnorsattion
+ */
+ConvoBar.prototype.update = function(convo, bump=true) {
+  var self = this;
+  if ( self.holder[convos] === undefined ) {
+    // register convo
+    self.registerConvo(convo);
+  } else if (bump) {
+    // bump existing convo
+    var convoId = self.getConvoID(convo);
+    var convoElem = document.getElementById("livechan_convobar_item_"+convoId);
+    var convoParent = convoElem.parentElement;
+    convoParent.removeChild(convoElement);
+    convoParent.children.unshift(conovElem);
+  }
+}
+
+
+
+/** @brief register a new convorsation
+  * @param convo the name of the convo
+ */
+ConvoBar.prototype.registerConvo = function(convo) {
+  var max_id = 0;
+  // get the highest convo id
+  for ( c in self.holder ) {
+    var id = self.holder[c];
+    if (id > max_id ) {
+      max_id = id
+    }
+  }
+  // put it in the holder
+  self.holder[convo] = max_id + 1;
+  // make a new entry in the convo bar
+  var elem = document.createElement("div");
+  elem.className = "livechan_convobar_item";
+  elem.setAttribute("livechan_convobar_item_"+ self.holder[convo]);
+  elem.appendChild(document.createTextNode(convo));
+  // prepend the element
+  self.elems.children.unshift(elem);
+}
+
+/* @brief Only Show chats from a convorsation
+ * @param convo the name of the convorsation or null for all
+ */
+ConvoBar.prototype.show = function(convo) {
+  var self = this;
+  var sheet = document.getElementById("convo_filter");
+  var rules = sheet.rules || sheet.cssRules;
+
+  var delRule = sheet.deleteRule || sheet.removeRule;
+
+  // delete all filtering rules
+  while ( rules.length > 0 ) {
+    delRule(0);
+  }
+
+  // if we want to filter a convo do that 
+  if (convo) {
+    var convoId = self.holder[convo];
+    var elemClass = "livechan_chat_convo_" + convoId;
+    if (rules.insertRule) {  // firefox
+      rules.insertRule("livechan_chat_output_chat {  display: none; }")
+      rules.insertRule(elemClass+ " { display: block; }");
+    } else if (rules.addRule) { // not firefox
+      rules.addRule("livechan_chat_output_chat", "display: none");
+      rules.addRule(elemClass, "display: block");
+    }
+  } else {
+    // we are making everything visible
+    if (rules.insertRule) { // firefox
+      rules.insertRule("livechan_chat_output_chat { display: block; }");
+    } else if ( rules.addRule ) {
+      rules.addRule("livechan_chat_output_chat", "display: block");
+    }
+  }  
+}
+
 /* @brief Creates a chat.
  *
  * @param domElem The element to populate with chat
@@ -249,6 +355,8 @@ function Chat(domElem, channel, options) {
   } else {
     this.options = {};
   }
+
+  
   this.chatElems = buildChat(this.domElem, this.name);
   var prefix = this.options.prefix || "/";
   this.connection = initWebSocket(prefix, this.name);
@@ -256,7 +364,6 @@ function Chat(domElem, channel, options) {
   this.initInput();
   // set navbar channel name
   this.chatElems.navbar.setChannel(this.name);
-
   // create captcha and hide it
   this.captcha = new Captcha(this.domElem, this.options);
   this.captcha.hide();
@@ -552,6 +659,7 @@ Chat.prototype.insertChat = function(chat, number) {
   self.rollover();
 }
 
+
 /* @brief Generates a chat div.
  *
  * @param data Data passed in via websocket.
@@ -560,8 +668,16 @@ Chat.prototype.insertChat = function(chat, number) {
 Chat.prototype.generateChat = function(data) {
   var self = this;
   var chat = document.createElement('div');
-  chat.className = 'livechan_chat_output_chat';
 
+  // update the convo bar before we generate this chat
+  self.chatElems.convobar.update(data.Convo);
+
+  var convo = self.convos.getConvoID(data.Convo);
+  chat.className = 'livechan_chat_output_chat livechan_chat_convo_' + convo;
+  var convoLabel = document.createElement('span');
+  convoLabel.className = 'livechan_convo_label';
+  convoLabel.appendChild(document.createTextNode(data.Convo));
+  
   var header = document.createElement('div');
   header.className = 'livechan_chat_output_header';
   var name = document.createElement('span');
@@ -588,6 +704,7 @@ Chat.prototype.generateChat = function(data) {
   if (data.FilePath) {
     var a = document.createElement('a');
     a.setAttribute('target', '_blank');
+    // TODO: make these configurable
     var thumb_url = '/thumbs/'+data.FilePath;
     var src_url = '/upload/'+data.FilePath;
   
@@ -606,7 +723,7 @@ Chat.prototype.generateChat = function(data) {
     capcode.className = "livechan_chat_capcode";
     name.appendChild(capcode);
   }
-    
+
     
   /* Note that parse does everything here.  If you want to change
    * how things are rendered modify messageRules. */
@@ -636,6 +753,7 @@ Chat.prototype.generateChat = function(data) {
   header.appendChild(name);
   header.appendChild(trip);
   header.appendChild(date);
+  header.appendChild(convoLabel);
   header.appendChild(count);
   body.appendChild(message);
 

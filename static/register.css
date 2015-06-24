@@ -1,0 +1,8 @@
+body {
+    background: #EEF2FF;
+    font-family: sans-serif;
+}
+
+#register_pane {
+    visibility: hidden;
+}
