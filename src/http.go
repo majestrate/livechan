@@ -195,7 +195,7 @@ func convoServer(w http.ResponseWriter, req *http.Request) {
   }
   w.Header().Set("Content-Type", "text/json; charset=utf-8")
   // get the channel nane
-  channel := req.URL.Path[7+len(cfg["prefix"]):]
+  channel := req.URL.Path[8:]
   // get the convos for this channel
   convos := storage.getConvos(channel)
 
@@ -343,7 +343,7 @@ func staticServer(w http.ResponseWriter, req *http.Request) {
   if sess == nil {
     return
   }
-  path := req.URL.Path[6+len(cfg["prefix"]):]
+  path := req.URL.Path[7:]
   // prevent file tranversal
   if strings.Contains(path, "..") {
     http.Error(w, "Not Found", 404)

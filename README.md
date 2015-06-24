@@ -41,9 +41,13 @@ go get github.com/majestrate/configparser
 ```
 git clone https://github.com/majestrate/livechan.git
 ```
+- make the server.
+```
+make
+```
 - Run the server.
 ```
-go run *.go
+./livechan.bin
 ```
 - Open a browser and go to `localhost:18080`.
 
