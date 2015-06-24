@@ -261,7 +261,7 @@ function ConvoBar(domElem) {
  */
 ConvoBar.prototype.update = function(convo) {
   var self = this;
-  if ( self.holder[convos] === undefined ) {
+  if ( self.holder[convo] === undefined ) {
     // register convo
     self.registerConvo(convo);
   } else {
