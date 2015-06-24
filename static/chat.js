@@ -266,7 +266,7 @@ ConvoBar.prototype.update = function(convo) {
     self.registerConvo(convo);
   } else {
     // bump existing convo
-    var convoId = self.getConvoID(convo);
+    var convoId = self.holder[convo];
     var convoElem = document.getElementById("livechan_convobar_item_"+convoId);
     var convoParent = convoElem.parentElement;
     convoParent.removeChild(convoElement);
