@@ -129,6 +129,12 @@ input, textarea, select {
     top: 20px;
     right: 0;
     width: 10%;
+    hieght: 90%;
+}
+
+.livechan_convobar_item {
+    margin: 5px;
+    padding: 5px;
 }
 
 .livechan_navbar {
