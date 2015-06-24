@@ -237,9 +237,13 @@ func htmlServer(w http.ResponseWriter, req *http.Request) {
     return
   }
 
-  // default to "General" chat if nothing specified
+  // show landing page if no channel
   if channelName == "" {
-    channelName = "General"
+    // write out index.html
+    w.Header().Set("Content-Type", "text/html; charset=utf-8")
+    f := filepath.Join(cfg["webroot_dir"], "index.html")
+    http.ServeFile(w, req, f)
+    return
   }
 
   // if the channel does not exist ask for registration
@@ -248,9 +252,9 @@ func htmlServer(w http.ResponseWriter, req *http.Request) {
     return
   }
   
-  // write out index.html
+  // write out board.html
   w.Header().Set("Content-Type", "text/html; charset=utf-8")
-  f := filepath.Join(cfg["webroot_dir"], "index.html")
+  f := filepath.Join(cfg["webroot_dir"], "board.html")
   http.ServeFile(w, req, f)
 }
 
