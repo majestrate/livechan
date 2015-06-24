@@ -297,7 +297,7 @@ ConvoBar.prototype.registerConvo = function(convo) {
   elem.setAttribute("id", "livechan_convobar_item_"+ self.holder[convo]);
   elem.appendChild(document.createTextNode(convo));
   // prepend the element
-  self.elems.children.unshift(elem);
+  self.elems.insertBefore(self.elems.children[0], elem);
 }
 
 /* @brief Only Show chats from a convorsation
