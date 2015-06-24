@@ -123,6 +123,14 @@ input, textarea, select {
     color: white;
 }
 
+.livechan_convobar_root {
+    z-index: 3;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 300;
+    height: 100%;
+}
 
 .livechan_navbar {
     z-index: 3;

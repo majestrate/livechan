@@ -237,7 +237,7 @@ var messageRules = [
 /* @brief build the convorsation bar's elements
 */
 function buildConvoBar(domElem) {
-  var elem = document.createElement("span");
+  var elem = document.createElement("div");
   elem.className = "livechan_convobar_root";
   domElem.appendChild(elem);
   return elem;
