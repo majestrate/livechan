@@ -372,9 +372,9 @@ ConvoBar.prototype.show = function(convo) {
   } else {
     // we are making everything visible
     if (sheet.insertRule) { // firefox
-      sheet.insertRule("livechan_chat_output_chat { display: block; }", 0);
+      sheet.insertRule(".livechan_chat_output_chat { display: block; }", 0);
     } else if ( sheet.addRule ) {
-      sheet.addRule("livechan_chat_output_chat", "display: block");
+      sheet.addRule(".livechan_chat_output_chat", "display: block");
     }
   }
   // set the convobar value
