@@ -23,3 +23,5 @@ ajax.onreadystatechange = function() {
     }
   }
 }
+ajax.open("GET", "/channels");
+ajax.send();
