@@ -351,7 +351,7 @@ ConvoBar.prototype.show = function(convo) {
       rules.insertRule(elemClass+ " { display: block; }", 0);
       
     } else if (rules.addRule) { // not firefox
-      rules.addRule("livechan_chat_output_chat", "display: none");
+      rules.addRule(".livechan_chat_output_chat", "display: none");
       rules.addRule(elemClass, "display: block");
     }
     // this convo is now active
