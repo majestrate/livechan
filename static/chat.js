@@ -32,6 +32,11 @@ function buildChat(domElem, channel) {
   name.className = 'livechan_chat_input_name';
   name.setAttribute('placeholder', 'Anonymous');
 
+  var convo = document.createElement('input');
+  convo.className = 'livechan_chat_input_convo';
+  convo.setAttribute("type", "text");
+  convo.setAttribute("value", "General");
+  
   var file = document.createElement('input');
   file.className = 'livechan_chat_input_file';
   file.setAttribute('type', 'file');
@@ -67,6 +72,7 @@ function buildChat(domElem, channel) {
     navbar: navbar,
     output: output,
     input: {
+      convo: convo,
       form: input,
       message: message,
       name: name,
@@ -250,6 +256,7 @@ function ConvoBar(domElem) {
   this.holder = {};
   this.domElem = domElem;
   this.elems = buildConvoBar(domElem);
+  this.active = null;
 }
 
 
@@ -294,7 +301,12 @@ ConvoBar.prototype.registerConvo = function(convo) {
   var elem = document.createElement("div");
   elem.className = "livechan_convobar_item";
   elem.setAttribute("id", "livechan_convobar_item_"+ self.holder[convo]);
-  elem.appendChild(document.createTextNode(convo));
+  var link = document.createElement("a");
+  link.setAttribute("onclick", function() {
+    // when we click it, focus on just that convo
+    self.show(convo);
+  });
+  link.appendChild(document.createTextNode(convo));
   // prepend the element
   if (self.elems.children.length > 0 ) {
     self.elems.insertBefore(self.elems.childNode[0], elem);
@@ -317,10 +329,12 @@ ConvoBar.prototype.show = function(convo) {
   while ( rules.length > 0 ) {
     delRule(0);
   }
-
+  
   // if we want to filter a convo do that 
-  if (convo) {
+  if (convo && convo != self.active) {
     var convoId = self.holder[convo];
+    var itemElem = document.getElementById("livechan_convobar_item_"+convoId);
+    itemElem.style.background = "red";
     var elemClass = "livechan_chat_convo_" + convoId;
     if (rules.insertRule) {  // firefox
       rules.insertRule("livechan_chat_output_chat {  display: none; }")
@@ -336,7 +350,9 @@ ConvoBar.prototype.show = function(convo) {
     } else if ( rules.addRule ) {
       rules.addRule("livechan_chat_output_chat", "display: block");
     }
-  }  
+  }
+  // this convo is now active
+  self.active = convo;
 }
 
 /* @brief Creates a chat.
@@ -470,6 +486,7 @@ Chat.prototype.sendInput = function(event) {
   if (inputElem.submit.disabled == false) {
     var message = inputElem.message.value;
     var name = inputElem.name.value;
+    var convo = inputElem.convo.value;
     self.readImage(inputElem.file, function(file, filename) {
       // check for file too big
       // TODO: make configurable
@@ -477,6 +494,7 @@ Chat.prototype.sendInput = function(event) {
         self.notify("file too big");
       } else {
         connection.send({
+          convo: convo,
           message: message,
           name: name,
           file: file,
