@@ -350,9 +350,8 @@ ConvoBar.prototype.show = function(convo) {
     itemElem.style.background = "red";
     var elemClass = ".livechan_chat_convo_" + convoId;
     if (sheet.insertRule) {  // firefox
-      sheet.insertRule(".livechan_chat_output_chat {  display: none; }", 0)
       sheet.insertRule(elemClass+ " { display: block; }", 0);
-      
+      sheet.insertRule(".livechan_chat_output_chat {  display: none; }", 0);
     } else if (sheet.addRule) { // not firefox
       sheet.addRule(".livechan_chat_output_chat", "display: none");
       sheet.addRule(elemClass, "display: block");
