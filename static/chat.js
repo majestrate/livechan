@@ -349,6 +349,8 @@ ConvoBar.prototype.show = function(convo) {
       rules.addRule("livechan_chat_output_chat", "display: none");
       rules.addRule(elemClass, "display: block");
     }
+    // this convo is now active
+    self.active = convo;
   } else {
     // we are making everything visible
     if (rules.insertRule) { // firefox
@@ -361,10 +363,9 @@ ConvoBar.prototype.show = function(convo) {
       var convoId = self.holder[convo];
       var itemElem = document.getElementById("livechan_convobar_item_"+convoId);
       itemElem.style.background = null;
+      self.active = null;
     }
   }
-  // this convo is now active
-  self.active = convo;
 }
 
 /* @brief Creates a chat.
