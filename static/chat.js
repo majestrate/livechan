@@ -320,8 +320,9 @@ ConvoBar.prototype.registerConvo = function(convo) {
 ConvoBar.prototype.show = function(convo) {
   var self = this;
   var sheet = null;
-  for( sheet in document.styleSheets ) {
+  for(var s in document.styleSheets ) {
     if (sheet.ownerNode.id === "convo_filter") {
+      sheet = s;
       break;
     }
   }
