@@ -347,17 +347,26 @@ ConvoBar.prototype.show = function(convo) {
       break;
     }
   }
-  // unset active highlight
-  if ( self.active ) {
+  if ( convo === self.active) {
+    // this is resetting the view
+    if (sheet.insertRule) {  // firefox
+      sheet.insertRule(".livechan_chat_output_chat {  display: block; }", 0);
+    } else if (sheet.addRule) { // not firefox
+      sheet.addRule(".livechan_chat_output_chat", "display: block");
+    }
+    // unset active highlight
     var convoId = self.holder[self.active];
     var itemElem = document.getElementById("livechan_convobar_item_"+convoId);
     itemElem.style.background = null;
     self.active = null;
-  }
-  // if we want to filter a convo do that 
-  if ( convo != self.active) {
-    var convoId = self.holder[convo];
+  } else {
+    // unset active highlight
+    var convoId = self.holder[self.active];
     var itemElem = document.getElementById("livechan_convobar_item_"+convoId);
+    itemElem.style.background = null;
+    // set active highlight to new element
+    convoId = self.holder[convo];
+    itemElem = document.getElementById("livechan_convobar_item_"+convoId);
     itemElem.style.background = "red";
     var elemClass = ".livechan_chat_convo_" + convoId;
     if (sheet.insertRule) {  // firefox
@@ -369,13 +378,6 @@ ConvoBar.prototype.show = function(convo) {
     }
     // this convo is now active
     self.active = convo;
-  } else {
-    // this is resetting the view
-    if (sheet.insertRule) {  // firefox
-      sheet.insertRule(".livechan_chat_output_chat {  display: block; }", 0);
-    } else if (sheet.addRule) { // not firefox
-      sheet.addRule(".livechan_chat_output_chat", "display: block");
-    }
   }
   // set the convobar value
   self.elem.value = self.active || "General";
