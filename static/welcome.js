@@ -4,6 +4,7 @@
 
 
 addBoardToList = function(boardName) {
+  console.log("add board to list: "+boardName);
   var boardList = document.getElementById("boards");
   var elem = document.createElement("div");
   elem.className = "livechan_board_list_entry";
