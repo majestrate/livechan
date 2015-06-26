@@ -747,8 +747,6 @@ Chat.prototype.insertChat = function(chat, data) {
   // append to main output
   var outputElem = this.chatElems.output;
   outputElem.appendChild(chat);
-  // update convo state
-  self.chatElems.convobar.update(convo, chat);
   // scroll to end
   self.scroll();
 }
@@ -764,6 +762,7 @@ Chat.prototype.generateChat = function(data) {
 
   var chat = document.createElement('div');
 
+  self.chatElems.convobar.update(data.Convo, data);
   var convo = self.chatElems.convobar.holder[data.Convo];
   chat.className = 'livechan_chat_output_chat livechan_chat_convo_' + convo;
   var convoLabel = document.createElement('span');
