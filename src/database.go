@@ -427,11 +427,11 @@ func (s *Database) getCount(channelName string) uint64{
 func (s *Database) getChannels() []string{
   var outputChannels []string
   stmt, err := s.db.Prepare(`
-  SELECT channels.name, MAX(chats.date)
+  SELECT channels.name, MAX(chats.chat_date)
   FROM channels
     left join chats ON chats.channel = channels.id
   GROUP BY channels.name
-  ORDER BY chats.date`)
+  ORDER BY chats.chat_date`)
   if err != nil {
     log.Println("Couldn't get channels.", err)
     return outputChannels
