@@ -356,6 +356,12 @@ ConvoBar.prototype.show = function(convo) {
     } else if ( rules.addRule ) {
       rules.addRule("livechan_chat_output_chat", "display: block");
     }
+    // unset active highlight
+    if ( active ) {
+      var convoId = self.holder[convo];
+      var itemElem = document.getElementById("livechan_convobar_item_"+convoId);
+      itemElem.style.background = null;
+    }
   }
   // this convo is now active
   self.active = convo;
