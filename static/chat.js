@@ -302,10 +302,8 @@ ConvoBar.prototype.registerConvo = function(convo) {
   elem.className = "livechan_convobar_item";
   elem.setAttribute("id", "livechan_convobar_item_"+ self.holder[convo]);
   var link = document.createElement("a");
-  link.setAttribute("onclick", function() {
-    // when we click it, focus on just that convo
-    self.show(convo);
-  });
+  link.setAttribute("href", "#");
+  link.addEventListener("click", function() { self.show(convo); });
   link.appendChild(document.createTextNode(convo));
   elem.appendChild(link);
   // prepend the element
