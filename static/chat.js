@@ -319,7 +319,12 @@ ConvoBar.prototype.registerConvo = function(convo) {
  */
 ConvoBar.prototype.show = function(convo) {
   var self = this;
-  var sheet = document.getElementById("convo_filter");
+  var sheet = null;
+  for( sheet in document.styleSheets ) {
+    if (sheet.ownerNode.id === "convo_filter") {
+      break;
+    }
+  }
   var rules = sheet.rules || sheet.cssRules;
 
   var delRule = sheet.deleteRule || sheet.removeRule;
