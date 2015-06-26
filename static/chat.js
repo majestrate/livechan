@@ -344,11 +344,11 @@ ConvoBar.prototype.show = function(convo) {
     var itemElem = document.getElementById("livechan_convobar_item_"+convoId);
     itemElem.style.background = "red";
     var elemClass = ".livechan_chat_convo_" + convoId;
-    if (rules.insertRule) {  // firefox
+    if (sheet.insertRule) {  // firefox
       sheet.insertRule(".livechan_chat_output_chat {  display: none; }", 0)
       sheet.insertRule(elemClass+ " { display: block; }", 0);
       
-    } else if (rules.addRule) { // not firefox
+    } else if (sheet.addRule) { // not firefox
       sheet.addRule(".livechan_chat_output_chat", "display: none");
       sheet.addRule(elemClass, "display: block");
     }
