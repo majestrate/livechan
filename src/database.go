@@ -340,14 +340,14 @@ func (s *Database) insertChat(chnl *Channel, chat *Chat) {
 
   stmt, err = tx.Prepare(`SELECT file_path FROM Chats 
                           WHERE chat_date NOT IN ( 
-                            SELECT chat_date FROM Chats ORDER BY chat_date DESC LIMIT ? ) 
-                          AND channel = ?`)
+                            SELECT chat_date FROM Chats WHERE convo = ? AND channel = ? ORDER BY chat_date DESC LIMIT ? ) 
+                          AND channel = ? AND convo = ?`)
   if err != nil {
     log.Println("cannot prepare file_path SELECT query for chat roll over", err)
     return
   }
   defer stmt.Close()
-  rows, err := stmt.Query(chnl.Scrollback, channelId)
+  rows, err := stmt.Query(convoId, channelId, chnl.Scrollback, channelId, convoId)
   defer rows.Close()
   for rows.Next() {
     var delchat Chat
@@ -358,14 +358,14 @@ func (s *Database) insertChat(chnl *Channel, chat *Chat) {
   }
   
   stmt, err = tx.Prepare(`UPDATE Chats SET file_path = '' WHERE chat_date NOT IN ( 
-                            SELECT chat_date FROM Chats ORDER BY chat_date DESC LIMIT ? ) 
-                          AND channel = ?`)
+                            SELECT chat_date FROM Chats WHERE convo = ? AND channel = ? ORDER BY chat_date DESC LIMIT ? ) 
+                          AND channel = ? AND convo = ?`)
   if err != nil {
     log.Println("cannot prepare query for reset filepath on old posts", err)
     return
   }
   defer stmt.Close()
-  _, err = stmt.Exec(chnl.Scrollback, channelId)
+  _, err = stmt.Exec(convoId, channelId, chnl.Scrollback, convoId, channelId)
   
   tx.Commit()
   if err != nil {
