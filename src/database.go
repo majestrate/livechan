@@ -455,14 +455,14 @@ func (s *Database) getChannels() []string{
 func (s *Database) getConvos(channelName string) []string{
   var outputConvos []string
   stmt, err := s.db.Prepare(`
-  SELECT convos.name, MAX(chats.date)
+  SELECT convos.name, MAX(chats.chat_date)
   FROM convos
     left join chats ON chats.convo = convos.id
   WHERE convos.channel = (
     SELECT id FROM channels WHERE name = ?
   )
   GROUP BY convos.name
-  ORDER BY chats.date DESC LIMIT 20`)
+  ORDER BY chats.chat_date DESC LIMIT 20`)
   if err != nil {
     log.Println("Couldn't get convos.", err)
     return outputConvos
