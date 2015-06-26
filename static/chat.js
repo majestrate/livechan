@@ -312,7 +312,7 @@ ConvoBar.prototype.registerConvo = function(convo) {
   elem.appendChild(link);
   // prepend the element
   if (self.elems.children.length > 0 ) {
-    self.elems.insertBefore(self.elems.childNode[0], elem);
+    self.elems.insertBefore(self.elems.childNodes[0], elem);
   } else {
     self.elems.appendChild(elem);
   }
