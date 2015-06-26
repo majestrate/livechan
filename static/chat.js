@@ -360,10 +360,12 @@ ConvoBar.prototype.show = function(convo) {
     itemElem.style.background = null;
     self.active = null;
   } else {
-    // unset active highlight
-    var convoId = self.holder[self.active];
-    var itemElem = document.getElementById("livechan_convobar_item_"+convoId);
-    itemElem.style.background = null;
+    // unset active highlight if it's there
+    if (self.active) {
+      var convoId = self.holder[self.active];
+      var itemElem = document.getElementById("livechan_convobar_item_"+convoId);
+      itemElem.style.background = null;
+    }
     // set active highlight to new element
     convoId = self.holder[convo];
     itemElem = document.getElementById("livechan_convobar_item_"+convoId);
