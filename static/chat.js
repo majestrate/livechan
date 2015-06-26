@@ -13,7 +13,7 @@
  * @return An object of references to the structure
  *         created.
  */
-function buildChat(domElem, channel) {
+function buildChat(chat, domElem, channel) {
   // build the navbar
   // see nav.js
   var navbar = new LivechanNavbar(domElem);
@@ -52,7 +52,7 @@ function buildChat(domElem, channel) {
   submit.className = 'livechan_chat_input_submit';
   submit.setAttribute('type', 'submit');
   submit.setAttribute('value', 'send');
-  var convobar = new ConvoBar(domElem);
+  var convobar = new ConvoBar(chat, domElem);
   input_left.appendChild(name); 
   input_left.appendChild(convobar.elem);
   input_left.appendChild(file);
@@ -259,7 +259,8 @@ function buildConvoBar(domElem) {
 /* @brief create the chat's convorsation bar
  * @param domElem the element to place everything in
  */
-function ConvoBar(domElem) {
+function ConvoBar(chat, domElem) {
+  this.parent = chat;
   this.holder = {};
   this.domElem = domElem;
   var convo = buildConvoBar(domElem);
@@ -383,6 +384,9 @@ ConvoBar.prototype.show = function(convo) {
   }
   // set the convobar value
   self.elem.value = self.active || "General";
+
+  // scroll view
+  self.parent.scroll();
 }
 
 /* @brief Creates a chat.
@@ -403,7 +407,7 @@ function Chat(domElem, channel, options) {
   }
 
   
-  this.chatElems = buildChat(this.domElem, this.name);
+  this.chatElems = buildChat(this, this.domElem, this.name);
   var prefix = this.options.prefix || "/";
   this.connection = initWebSocket(prefix, this.name);
   this.initOutput();
