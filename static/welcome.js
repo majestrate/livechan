@@ -20,6 +20,7 @@ window.addEventListener('load', function() {
   var ajax = new XMLHttpRequest();
   ajax.onreadystatechange = function() {
     if ( ajax.status == 200 && ajax.readyState == XMLHttpRequest.DONE ) {
+      console.log(ajax.responsText);
       var boardList = JSON.parse(ajax.reponseText);
       for ( var idx = 0 ; idx < boardList; idx ++ ) {
         addBoardToList(boardList[idx]);
