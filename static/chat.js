@@ -294,12 +294,13 @@ ConvoBar.prototype.update = function(convo, chat) {
     self.convoPosts[convo] = [];
   }
   // add post to convo
-  self.convosPosts[convo].push(chat);
+  self.convoPosts[convo].push(chat);
   // do roll over
   var scrollback = self.parent.options.scrollback || 30;
   while(self.convoPosts[convo].length > scrollback) {
     // remove oldest from convo tracker
-    var chuld = self.convoPosts[convo].shift();
+    var child_data = self.convoPosts[convo].shift();
+    var child = document.getElementById("livechan_chat_"+child_data.Count);
     // remove element from main chat element
     self.parent.chatElems.output.removeChild(child);
   }
