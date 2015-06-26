@@ -94,7 +94,7 @@ func (h *Hub) run() {
       // join the channel
       chnl.Join(con)
       
-      // get scollback for every active channel
+      // get scollback for every active convo
       var posts []Chat
       for _, convo := range storage.getConvos(con.channelName) {
         ch := storage.getChats(con.channelName, convo, chnl.Scrollback)
