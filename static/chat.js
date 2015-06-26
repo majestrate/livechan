@@ -57,7 +57,7 @@ function buildChat(domElem, channel) {
 
   input.appendChild(name);
   input.appendChild(file);
-  input.aapendChild(convo);
+  input.appendChild(convo);
   messageDiv.appendChild(message);
   input.appendChild(messageDiv);
   input.appendChild(submit);
