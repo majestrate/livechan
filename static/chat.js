@@ -25,7 +25,7 @@ function buildChat(domElem, channel) {
   var output = document.createElement('div');
   output.className = 'livechan_chat_output';
 
-  var input_left = document.createElement('duv');
+  var input_left = document.createElement('div');
   input_left.className = 'livechan_chat_input_left';
   
   var input = document.createElement('form');
@@ -57,9 +57,9 @@ function buildChat(domElem, channel) {
   submit.setAttribute('type', 'submit');
   submit.setAttribute('value', 'send');
 
-  input_left.appendChild(name);
-  input_left.appendChild(file);
+  input_left.appendChild(name); 
   input_left.appendChild(convo);
+  input_left.appendChild(file);
   input.appendChild(input_left);
   messageDiv.appendChild(message);
   input.appendChild(messageDiv);
