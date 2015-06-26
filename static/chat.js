@@ -34,7 +34,6 @@ function buildChat(domElem, channel) {
 
   var convo = document.createElement('input');
   convo.className = 'livechan_chat_input_convo';
-  convo.setAttribute("type", "text");
   convo.setAttribute("value", "General");
   
   var file = document.createElement('input');

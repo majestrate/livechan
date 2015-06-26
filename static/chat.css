@@ -15,22 +15,17 @@ input, textarea, select {
   right: 0;
 }
 
-.livechan_chat_input_name {
+.livechan_chat_input_name, .livechan_chat_input_convo {
   padding: 0;
   padding-left: 2px;
   margin: 0;
-  border: none;
-  position: absolute;
-  width: 104px;
-  left: 3px;
-  top: 3px;
+  width: 10%;
 }
 
 .livechan_chat_input_file {
   padding: 0;
   margin: 0;
   position: absolute;
-  width: 106px;
   left: 3px;
   bottom: 3px;
   border: none;
@@ -40,8 +35,8 @@ input, textarea, select {
   padding:0;
   margin:0;
   position: absolute;
-  right: 53px;
-  left: 112px;
+  width: 70%;
+  left: 20%;
   top: 3px;
   bottom: 3px;
 }
