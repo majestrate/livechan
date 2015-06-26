@@ -349,7 +349,7 @@ ConvoBar.prototype.show = function(convo) {
   }
   // unset active highlight
   if ( convo && self.active ) {
-    var convoId = self.holder[convo];
+    var convoId = self.holder[self.active];
     var itemElem = document.getElementById("livechan_convobar_item_"+convoId);
     itemElem.style.background = null;
     self.active = null;
