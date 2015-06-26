@@ -273,21 +273,36 @@ function ConvoBar(chat, domElem) {
 /* @brief update the convo bar
  * @param convoId the name of this covnorsattion
  */
-ConvoBar.prototype.update = function(convo) {
+ConvoBar.prototype.update = function(convo, chat) {
   var self = this;
   if ( self.holder[convo] === undefined ) {
+    // new convo
     // register convo
     self.registerConvo(convo);
-  } else {
-    // bump existing convo
-    var convoId = self.holder[convo];
-    var convoElem = document.getElementById("livechan_convobar_item_"+convoId);
-    var convoParent = convoElem.parentElement;
-    if ( convoParent.children.length > 1 ) {
-      convoParent.removeChild(convoElem);
-      convoParent.insertBefore(convoElem, convoParent.childNodes[0]);
-    }
+  } 
+  // bump existing convo
+  var convoId = self.holder[convo];
+  var convoElem = document.getElementById("livechan_convobar_item_"+convoId);
+  var convoParent = convoElem.parentElement;
+  if ( convoParent.children.length > 1 ) {
+    convoParent.removeChild(convoElem);
+    convoParent.insertBefore(convoElem, convoParent.childNodes[0]);
   }
+  // begin tracking a convo's posts if not already
+  if ( self.convoPosts[convo] === undefined ) {
+    self.convoPosts[convo] = [];
+  }
+  // add post to convo
+  self.convosPosts[convo].push(chat);
+  // do roll over
+  var scrollback = self.parent.options.scrollback || 30;
+  while(self.convoPosts[convo].length > scrollback) {
+    // remove oldest from convo tracker
+    var chuld = self.convoPosts[convo].shift();
+    // remove element from main chat element
+    self.parent.chatElems.output.removeChild(child);
+  }
+  
 }
 
 
@@ -322,6 +337,35 @@ ConvoBar.prototype.registerConvo = function(convo) {
   } else {
     self.widget.appendChild(elem);
   }
+}
+
+
+/* 
+ * @brief load the converstation list from server
+ */
+ConvoBar.prototype.load = function() {
+  var self = this;
+  var prefix = self.parent.options.prefix || "/";
+  var ajax = new XMLHttpRequest();
+  // prepare ajax
+  ajax.onreadystatechange = function() {
+    if (ajax.status == 200 && ajax.readyState == XMLHttpRequest.DONE ) {
+      // clear state
+      self.holder = {};
+      // clear widget
+      while(self.widget.firstChild) {
+        self.widget.removeChild(self.widget.firstChild);
+      }
+      // register all convos
+      var convos = json.parse(ajax.responseText);
+      for ( var idx = 0; idx < convos.length ; idx ++ ) {
+        self.registerConvo(convos[idx]);
+      }
+    }
+  }
+  // send ajax
+  ajax.open(prefix+"convos/"+self.parent.name);
+  ajax.send();
 }
 
 /* @brief Only Show chats from a convorsation
@@ -621,7 +665,7 @@ Chat.prototype.initOutput = function() {
             self.updateUserCount(data[i].UserCount);
           } else {
             var c = self.generateChat(data[i]);
-            self.insertChat(c, data[i].Count);
+            self.insertChat(c, data[i]);
           }
         }
       }
@@ -644,7 +688,7 @@ Chat.prototype.initOutput = function() {
           self.chatElems.navbar.updateUsers(data.UserCount);
         } else {
           var c = self.generateChat(data);
-          self.insertChat(c, data.Count);
+          self.insertChat(c, data);
         }
       }
     }
@@ -682,12 +726,7 @@ Chat.prototype.scroll = function() {
 Chat.prototype.rollover = function() {
   var self = this;
   var chatSize = self.options.scrollback || 50;
-  var outputElem = self.chatElems.output;
-  // while it's too big
-  while(outputElem.childNodes.length > chatSize) {
-    // remove top child
-    outputElem.removeChild(outputElem.childNodes[0]);
-  }
+  self.chatElems.convobar.rolloverAll(chatSize);
 }
 
 /* @brief Inserts the chat into the DOM, overwriting if need be.
@@ -698,17 +737,20 @@ Chat.prototype.rollover = function() {
  * @param chat The dom element to be inserted.
  * @param number The number of the chat to keep it in order.
  */
-Chat.prototype.insertChat = function(chat, number) {
+Chat.prototype.insertChat = function(chat, data) {
+  var number = data.Count;
+  var convo = data.Convo;
   if (!number) {
     this.error("Error: invalid chat number.");
   }
   var self = this;
+  // append to main output
   var outputElem = this.chatElems.output;
   outputElem.appendChild(chat);
+  // update convo state
+  self.chatElems.convobar.update(convo, chat);
   // scroll to end
   self.scroll();
-  // rollover old posts
-  self.rollover();
 }
 
 
@@ -721,9 +763,6 @@ Chat.prototype.generateChat = function(data) {
   var self = this;
 
   var chat = document.createElement('div');
-
-  // update the convo bar before we generate this chat
-  self.chatElems.convobar.update(data.Convo);
 
   var convo = self.chatElems.convobar.holder[data.Convo];
   chat.className = 'livechan_chat_output_chat livechan_chat_convo_' + convo;

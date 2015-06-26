@@ -82,7 +82,6 @@ window.addEventListener('load', function() {
       var chatName = location.pathname.slice(prefix.length);
       chatName = chatName ? chatName : 'General';
       var c = new Chat(document.getElementById('chat'), chatName, options);
-      c.login();
     }
   };
   ajax.open("GET", "/options");

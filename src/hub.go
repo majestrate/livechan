@@ -92,9 +92,12 @@ func (h *Hub) run() {
       chnl := h.getChannel(con.channelName)
       // join the channel
       chnl.Join(con)
-      // send scollback
-      ch := storage.getChats(con.channelName, "General", chnl.Scrollback)
-      createJSONs(ch, con.send)
+      
+      // send scollback for every active channel
+      for _, convo := storage.getConvos(con.channelName) {
+        ch := storage.getChats(con.channelName, convo, chnl.Scrollback)
+        createJSONs(ch, con.send)
+      }
       
       // unregister connection
       // we assume the connection's websocket is already closed
