@@ -123,6 +123,10 @@ input, textarea, select {
     color: white;
 }
 
+.livechan_convo_label {
+    padding: 5px;
+}
+
 .livechan_convobar_root {
     position: absolute;
     top: 20px;
