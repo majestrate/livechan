@@ -378,7 +378,8 @@ ConvoBar.prototype.show = function(convo) {
       self.active = null;
     }
   }
-  
+  // set the convobar value
+  self.elem.value = self.active || "General";
 }
 
 /* @brief Creates a chat.
