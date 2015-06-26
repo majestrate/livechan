@@ -2,6 +2,7 @@ package main
 
 import (
   "log"
+  "sort"
 )
 
 
@@ -93,11 +94,16 @@ func (h *Hub) run() {
       // join the channel
       chnl.Join(con)
       
-      // send scollback for every active channel
+      // get scollback for every active channel
+      var posts []Chat
       for _, convo := range storage.getConvos(con.channelName) {
         ch := storage.getChats(con.channelName, convo, chnl.Scrollback)
-        createJSONs(ch, con.send)
+        posts = append(posts, ch...)
       }
+      // sort it
+      sort.Sort(chatDateSorter(posts))
+      // send it
+      createJSONs(posts, con.send)
       
       // unregister connection
       // we assume the connection's websocket is already closed

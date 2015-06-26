@@ -250,3 +250,20 @@ func createJSONs(chats []Chat, out chan []byte) {
   out <- data
 }
 
+// for sorting chat by date
+// implements sort.Interface
+type chatDateSorter []Chat
+
+func (self chatDateSorter) Len() int {
+  return len(self)
+}
+
+func (self chatDateSorter) Less(i, j int) bool {
+  return self[i].Date.UnixNano() < self[j].Date.UnixNano()
+}
+
+func (self chatDateSorter) Swap(i, j int) {
+  ch := self[j]
+  self[j] = self[i]
+  self[i] = ch
+}
