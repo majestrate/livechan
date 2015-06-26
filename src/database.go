@@ -431,7 +431,7 @@ func (s *Database) getChannels() []string{
   FROM channels
     left join chats ON chats.channel = channels.id
   GROUP BY channels.name
-  ORDER BY chats.date LIMIT DESC 20`)
+  ORDER BY chats.date`)
   if err != nil {
     log.Println("Couldn't get channels.", err)
     return outputChannels
