@@ -179,12 +179,9 @@ func channelServer(w http.ResponseWriter, req *http.Request) {
   }
   w.Header().Set("Content-Type", "text/json; charset=utf-8")
   chans := storage.getChannels()
-  fmt.Fprintf(w, "[ ")
-  for idx := range(chans) {
-    chnl := chans[idx]
-    fmt.Fprintf(w, "\"%s\", ", chnl);
-  }
-  fmt.Fprintf(w, "]")
+  // encode/write the response
+  enc := json.NewEncoder(w)
+  enc.Encode(chans)    
 }
 
 // serve list of converstations in a channel (?)
