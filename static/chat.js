@@ -71,7 +71,7 @@ function buildChat(domElem, channel) {
     navbar: navbar,
     output: output,
     input: {
-      convo: convo,
+      convo: convobar.elem,
       form: input,
       message: message,
       name: name,
