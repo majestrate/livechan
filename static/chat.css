@@ -19,7 +19,11 @@ input, textarea, select {
   padding: 0;
   padding-left: 2px;
   margin: 0;
-  width: 10%;
+  width: 50%;
+}
+
+.livechan_chat_input_left {
+    width: 30%;
 }
 
 .livechan_chat_input_file {
