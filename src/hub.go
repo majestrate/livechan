@@ -94,7 +94,7 @@ func (h *Hub) run() {
       chnl.Join(con)
       
       // send scollback for every active channel
-      for _, convo := storage.getConvos(con.channelName) {
+      for _, convo := range storage.getConvos(con.channelName) {
         ch := storage.getChats(con.channelName, convo, chnl.Scrollback)
         createJSONs(ch, con.send)
       }
