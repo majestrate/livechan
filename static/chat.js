@@ -54,7 +54,7 @@ function buildChat(domElem, channel) {
   submit.setAttribute('value', 'send');
   var convobar = new ConvoBar(domElem);
   input_left.appendChild(name); 
-  input_left.appendChild(convobar.elems);
+  input_left.appendChild(convobar.elem);
   input_left.appendChild(file);
   input.appendChild(input_left);
   messageDiv.appendChild(message);
@@ -250,7 +250,10 @@ function buildConvoBar(domElem) {
   convo.setAttribute("value", "General");
   elem.appendChild(convo);
   domElem.appendChild(elem);
-  return convo;
+  return {
+    widget: elem,
+    input: convo,
+  }
 }
 
 /* @brief create the chat's convorsation bar
@@ -259,7 +262,9 @@ function buildConvoBar(domElem) {
 function ConvoBar(domElem) {
   this.holder = {};
   this.domElem = domElem;
-  this.elems = buildConvoBar(domElem);
+  var convo = buildConvoBar(domElem);
+  this.elem = convo.input;
+  this.widget = convo.widget;
   this.active = null;
 }
 
@@ -311,10 +316,10 @@ ConvoBar.prototype.registerConvo = function(convo) {
   link.appendChild(document.createTextNode(convo));
   elem.appendChild(link);
   // prepend the element
-  if (self.elems.children.length > 0 ) {
-    self.elems.insertBefore(elem, self.elems.childNodes[0]);
+  if (self.widget.children.length > 0 ) {
+    self.widget.insertBefore(elem, self.widget.childNodes[0]);
   } else {
-    self.elems.appendChild(elem);
+    self.widget.appendChild(elem);
   }
 }
 
@@ -373,7 +378,7 @@ ConvoBar.prototype.show = function(convo) {
       self.active = null;
     }
   }
-  self.elems
+  
 }
 
 /* @brief Creates a chat.
