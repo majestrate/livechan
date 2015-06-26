@@ -307,6 +307,7 @@ ConvoBar.prototype.registerConvo = function(convo) {
     self.show(convo);
   });
   link.appendChild(document.createTextNode(convo));
+  elem.appendChild(link);
   // prepend the element
   if (self.elems.children.length > 0 ) {
     self.elems.insertBefore(self.elems.childNode[0], elem);
