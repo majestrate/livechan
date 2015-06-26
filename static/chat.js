@@ -347,7 +347,13 @@ ConvoBar.prototype.show = function(convo) {
       break;
     }
   }
-  
+  // unset active highlight
+  if ( convo && self.active ) {
+    var convoId = self.holder[convo];
+    var itemElem = document.getElementById("livechan_convobar_item_"+convoId);
+    itemElem.style.background = null;
+    self.active = null;
+  }
   // if we want to filter a convo do that 
   if (convo && convo != self.active) {
     var convoId = self.holder[convo];
@@ -369,13 +375,6 @@ ConvoBar.prototype.show = function(convo) {
       sheet.insertRule("livechan_chat_output_chat { display: block; }", 0);
     } else if ( sheet.addRule ) {
       sheet.addRule("livechan_chat_output_chat", "display: block");
-    }
-    // unset active highlight
-    if ( self.active ) {
-      var convoId = self.holder[convo];
-      var itemElem = document.getElementById("livechan_convobar_item_"+convoId);
-      itemElem.style.background = null;
-      self.active = null;
     }
   }
   // set the convobar value
