@@ -267,6 +267,7 @@ function ConvoBar(chat, domElem) {
   this.elem = convo.input;
   this.widget = convo.widget;
   this.active = null;
+  this.convoPosts = {};
 }
 
 
