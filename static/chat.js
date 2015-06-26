@@ -321,7 +321,7 @@ ConvoBar.prototype.show = function(convo) {
   var self = this;
   var sheet = null;
   for(var s in document.styleSheets ) {
-    if (s.ownerNode.id === "convo_filter") {
+    if (s.ownerNode && s.ownerNode.id === "convo_filter") {
       sheet = s;
       break;
     }
