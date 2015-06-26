@@ -279,7 +279,7 @@ ConvoBar.prototype.update = function(convo) {
     var convoParent = convoElem.parentElement;
     if ( convoParent.children.length > 1 ) {
       convoParent.removeChild(convoElem);
-      convoParent.insertBefore(convoParent.childNodes[0], convoElem);
+      convoParent.insertBefore(convoElem, convoParent.childNodes[0]);
     }
   }
 }
@@ -312,7 +312,7 @@ ConvoBar.prototype.registerConvo = function(convo) {
   elem.appendChild(link);
   // prepend the element
   if (self.elems.children.length > 0 ) {
-    self.elems.insertBefore(self.elems.childNodes[0], elem);
+    self.elems.insertBefore(elem, self.elems.childNodes[0]);
   } else {
     self.elems.appendChild(elem);
   }
