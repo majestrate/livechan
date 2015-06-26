@@ -345,9 +345,9 @@ ConvoBar.prototype.show = function(convo) {
     var convoId = self.holder[convo];
     var itemElem = document.getElementById("livechan_convobar_item_"+convoId);
     itemElem.style.background = "red";
-    var elemClass = "livechan_chat_convo_" + convoId;
+    var elemClass = ".livechan_chat_convo_" + convoId;
     if (rules.insertRule) {  // firefox
-      rules.insertRule("livechan_chat_output_chat {  display: none; }", 0)
+      rules.insertRule(".livechan_chat_output_chat {  display: none; }", 0)
       rules.insertRule(elemClass+ " { display: block; }", 0);
       
     } else if (rules.addRule) { // not firefox
