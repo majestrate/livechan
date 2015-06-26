@@ -361,10 +361,10 @@ ConvoBar.prototype.show = function(convo) {
     self.active = convo;
   } else {
     // we are making everything visible
-    if (rules.insertRule) { // firefox
-      rules.insertRule("livechan_chat_output_chat { display: block; }");
-    } else if ( rules.addRule ) {
-      rules.addRule("livechan_chat_output_chat", "display: block");
+    if (sheet.insertRule) { // firefox
+      sheet.insertRule("livechan_chat_output_chat { display: block; }");
+    } else if ( sheet.addRule ) {
+      sheet.addRule("livechan_chat_output_chat", "display: block");
     }
     // unset active highlight
     if ( self.active ) {
