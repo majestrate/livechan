@@ -34,10 +34,6 @@ function buildChat(domElem, channel) {
   var name = document.createElement('input');
   name.className = 'livechan_chat_input_name';
   name.setAttribute('placeholder', 'Anonymous');
-
-  var convo = document.createElement('input');
-  convo.className = 'livechan_chat_input_convo';
-  convo.setAttribute("value", "General");
   
   var file = document.createElement('input');
   file.className = 'livechan_chat_input_file';
@@ -56,15 +52,14 @@ function buildChat(domElem, channel) {
   submit.className = 'livechan_chat_input_submit';
   submit.setAttribute('type', 'submit');
   submit.setAttribute('value', 'send');
-
+  var convobar = new ConvoBar(domElem);
   input_left.appendChild(name); 
-  input_left.appendChild(convo);
+  input_left.appendChild(convobar.elems);
   input_left.appendChild(file);
   input.appendChild(input_left);
   messageDiv.appendChild(message);
   input.appendChild(messageDiv);
   input.appendChild(submit);
-  var convobar = new ConvoBar(domElem);
   domElem.appendChild(output);
   domElem.appendChild(input);
   // inject convobar
@@ -249,8 +244,13 @@ var messageRules = [
 function buildConvoBar(domElem) {
   var elem = document.createElement("div");
   elem.className = "livechan_convobar_root";
+  
+  var convo = document.createElement('input');
+  convo.className = 'livechan_chat_input_convo';
+  convo.setAttribute("value", "General");
+  elem.appendChild(convo);
   domElem.appendChild(elem);
-  return elem;
+  return convo;
 }
 
 /* @brief create the chat's convorsation bar
@@ -373,6 +373,7 @@ ConvoBar.prototype.show = function(convo) {
       self.active = null;
     }
   }
+  self.elems
 }
 
 /* @brief Creates a chat.
