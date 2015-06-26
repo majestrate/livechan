@@ -22,7 +22,7 @@ window.addEventListener('load', function() {
     if ( ajax.status == 200 && ajax.readyState == XMLHttpRequest.DONE ) {
       console.log(ajax.responseText);
       var boardList = JSON.parse(ajax.responseText);
-      for ( var idx = 0 ; idx < boardList; idx ++ ) {
+      for ( var idx = 0 ; idx < boardList.length ; idx ++ ) {
         addBoardToList(boardList[idx]);
       }
     } else {
