@@ -24,6 +24,8 @@ window.addEventListener('load', function() {
       for ( var idx = 0 ; idx < boardList; idx ++ ) {
         addBoardToList(boardList[idx]);
       }
+    } else {
+      console.log(ajax.status);
     }
   }
   ajax.open("GET", "/channels");
