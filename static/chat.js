@@ -331,11 +331,16 @@ ConvoBar.prototype.show = function(convo) {
       break;
     }
   }
-  var delRule = sheet.deleteRule || sheet.removeRule;
 
   // delete all filtering rules
   while ( sheet.rules.length > 0 ) {
-    delRule(0);
+    if (sheet.deleteRule) {
+      sheet.deleteRule(0);
+    } else if (sheet.removeRule) {
+      sheet.removeRule(0);
+    } else {
+      break;
+    }
   }
   
   // if we want to filter a convo do that 
