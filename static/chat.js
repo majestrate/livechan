@@ -331,12 +331,10 @@ ConvoBar.prototype.show = function(convo) {
       break;
     }
   }
-  var rules = sheet.rules || sheet.cssRules;
-
   var delRule = sheet.deleteRule || sheet.removeRule;
 
   // delete all filtering rules
-  while ( rules.length > 0 ) {
+  while ( sheet.rules.length > 0 ) {
     delRule(0);
   }
   
@@ -347,12 +345,12 @@ ConvoBar.prototype.show = function(convo) {
     itemElem.style.background = "red";
     var elemClass = ".livechan_chat_convo_" + convoId;
     if (rules.insertRule) {  // firefox
-      rules.insertRule(".livechan_chat_output_chat {  display: none; }", 0)
-      rules.insertRule(elemClass+ " { display: block; }", 0);
+      sheet.insertRule(".livechan_chat_output_chat {  display: none; }", 0)
+      sheet.insertRule(elemClass+ " { display: block; }", 0);
       
     } else if (rules.addRule) { // not firefox
-      rules.addRule(".livechan_chat_output_chat", "display: none");
-      rules.addRule(elemClass, "display: block");
+      sheet.addRule(".livechan_chat_output_chat", "display: none");
+      sheet.addRule(elemClass, "display: block");
     }
     // this convo is now active
     self.active = convo;
