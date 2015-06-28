@@ -302,7 +302,7 @@ ConvoBar.prototype.update = function(convo, chat) {
     var child_data = self.convoPosts[convo].shift();
     var child = document.getElementById("livechan_chat_"+child_data.Count);
     // remove element from main chat element
-    self.parent.chatElems.output.removeChild(child.parent.parent);
+    self.parent.chatElems.output.removeChild(child.parentNode.parentElement);
   }
   
 }
