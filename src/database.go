@@ -319,8 +319,12 @@ func (s *Database) insertChat(chnl *Channel, chat *Chat) {
     // get all old convos' files
     stmt, err := s.db.Prepare(`
       WITH 
-        chan(id) AS ( SELECT id FROM channels WHERE name = ? ),
-        oldConvos(id) AS SELECT convos.id FROM convos WHERE convos.id NOT IN 
+        chan(id) AS ( SELECT id FROM channels WHERE name = ? )
+      SELECT file_path FROM Chats 
+      WHERE channel IN chan AND file_path != ''
+      AND convo IN 
+      (
+        SELECT convos.id FROM convos WHERE convos.id NOT IN 
         (
           SELECT convos.id
           FROM convos
@@ -329,8 +333,7 @@ func (s *Database) insertChat(chnl *Channel, chat *Chat) {
           GROUP BY convos.name
           ORDER BY chats.chat_date DESC LIMIT ?
         ) AND convos.channel IN chan
-      SELECT file_path FROM Chats 
-      WHERE channel IN chan AND convo IN oldConvos AND file_path != ''`)
+      )`)
     if err != nil {
       log.Println("cannot prepare query to get oldest convos' files", err)
       return
