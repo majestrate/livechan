@@ -196,11 +196,13 @@ func createChat(data []byte, conn *Connection) {
 }
 
 
-// delete files associated with this chat
+// delete files associated with this chat if they exists
 func (chat *Chat) DeleteFile() {
-  log.Println("Delete Chat Files", chat.FilePath)
-  os.Remove(filepath.Join("upload", chat.FilePath))
-  os.Remove(filepath.Join("thumbs", chat.FilePath))
+  if len(chat.FilePath) > 0 {
+    log.Println("Delete Chat Files", chat.FilePath)
+    os.Remove(filepath.Join("upload", chat.FilePath))
+    os.Remove(filepath.Join("thumbs", chat.FilePath))
+  }
 }
 
 // create json object as bytes

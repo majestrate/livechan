@@ -9,7 +9,7 @@ import (
   "strings"
 )
 
-var needed_keys = []string{"db_type", "db_url", "ban_tor", "prefix", "bind", "api_secret", "admin_creds", "upload_dir", "thumbs_dir", "webroot_dir", "static_dir"}
+var needed_keys = []string{"db_type", "db_url", "ban_tor", "prefix", "bind", "api_secret", "admin_creds", "upload_dir", "thumbs_dir", "webroot_dir", "static_dir", "convo_limit"}
 
 type LivechanConfig map[string]string
 
@@ -31,7 +31,7 @@ func LoadConfig(fname string) LivechanConfig {
 
 // get publicly exposable server options
 func (self LivechanConfig) Options() []string {
-  return []string{"prefix", "scrollback", "cooldown"}
+  return []string{"prefix", "scrollback", "cooldown", "convo_limit"}
 }
 
 func (self LivechanConfig) BanTor() bool {

@@ -33,10 +33,10 @@ type Owner struct {
 type Channel struct {
   // connections for this channel
   Connections map[*Connection]time.Time
-  // converstations in this channel
-  // TODO: use this
-  Convos []string
+  // scrollback limit per convo
   Scrollback uint64
+  // limit on active convos
+  ConvoLimit uint64
   Name string
   // chan for recving incoming chats to send to this channel
   Send chan Chat
@@ -46,8 +46,9 @@ func NewChannel(name string) *Channel {
   chnl := new(Channel)
   chnl.Name = name
   chnl.Send = make(chan Chat, 20)
-  var fallbackScrollback uint64
+  var fallbackScrollback, fallbackConvoLimit uint64
   fallbackScrollback = 50
+  fallbackConvoLimit = 5
   // if we have set a scrollback amount in our config set it here
   if cfg.Has("scrollback") {
     var err error
@@ -58,7 +59,15 @@ func NewChannel(name string) *Channel {
   } else {
     chnl.Scrollback = fallbackScrollback
   }
-  chnl.Convos = make([]string, 10)
+  if cfg.Has("convo_limit") {
+    var err error
+    chnl.ConvoLimit, err = strconv.ParseUint(cfg["convo_limit"], 10, 64)
+    if err != nil {
+      chnl.ConvoLimit = fallbackConvoLimit
+    }
+  } else {
+    chnl.ConvoLimit = fallbackConvoLimit
+  }
   chnl.Connections = make(map[*Connection]time.Time)
   return chnl
 }

@@ -21,7 +21,7 @@ func (s *Database) deleteChatForIP(ipaddr string) {
     log.Println("Error: could not access DB.", err)
     return
   }
-  stmt, err := s.db.Prepare("SELECT file_path FROM Chats WHERE ip = ?")
+  stmt, err := s.db.Prepare("SELECT file_path FROM Chats WHERE ip = ? AND file_path != ''")
   rows, err := stmt.Query(&ipaddr)
   defer rows.Close()
   for rows.Next() {
@@ -87,6 +87,7 @@ func (s *Database) ProcessModEvent(ev ModEvent) {
     }
     defer stmt.Close()
     log.Println("Ban", ip)
+    // TODO: implement scoped bans
     stmt, err = tx.Prepare("INSERT INTO GlobalBans(ip, offense, expiration, date) VALUES(?,?,?,?)")
     if err != nil {
       log.Println("failed to ban", err)
@@ -104,7 +105,7 @@ func (s *Database) ProcessModEvent(ev ModEvent) {
   
   
   var queryFile, queryDelete string
-  if ev.Scope == SCOPE_GLOBAL && ev.Action >= ACTION_DELETE_ALL {
+  if ev.Scope >= SCOPE_GLOBAL && ev.Action >= ACTION_DELETE_ALL {
     // all posts in this for this ip
     queryFile = `SELECT file_path FROM Chats WHERE ip IN ( 
                    SELECT ip FROM Chats WHERE 
@@ -304,17 +305,49 @@ func (s *Database) insertChat(chnl *Channel, chat *Chat) {
   channelId := s.getChatChannelId(chnl.Name)
   // no such channel ?
   if channelId == 0 {
-    s.insertChannel(chnl.Name)
-    channelId = s.getChatChannelId(chnl.Name)
-    if channelId == 0 {
-      log.Println("Error creating channel", chnl.Name);
-      return
-    }
+    // don't create channel
+    log.Println("No Such Channel", chnl.Name)
+    return
   }
+  
   convoId := s.getChatConvoId(channelId, chat.Convo)
+  // no such convo?
   if convoId == 0 {
+    // create convo
     s.insertConvo(channelId, chat.Convo)
     convoId = s.getChatConvoId(channelId, chat.Convo)
+    // get all old convos' files
+    stmt, err := s.db.Prepare(`
+      WITH 
+        chan(id) AS ( SELECT id FROM channels WHERE name = ? ),
+        oldConvos(id) AS SELECT convos.id FROM convos WHERE convos.id NOT IN 
+        (
+          SELECT convos.id
+          FROM convos
+            LEFT JOIN chats ON chats.convo = convos.id
+          WHERE convos.channel IN chan
+          GROUP BY convos.name
+          ORDER BY chats.chat_date DESC LIMIT ?
+        ) AND convos.channel IN chan
+      SELECT file_path FROM Chats 
+      WHERE channel IN chan AND convo IN oldConvos AND file_path != ''`)
+    if err != nil {
+      log.Println("cannot prepare query to get oldest convos' files", err)
+      return
+    }
+    defer stmt.Close()
+    rows, err := stmt.Query(chnl.Name, chnl.ConvoLimit)
+    if err != nil {
+      log.Println("failed to execute query to get oldest convos", err)
+      return
+    }
+    defer rows.Close()
+    // delete old files
+    for rows.Next() {
+      var ch Chat
+      rows.Scan(&ch.FilePath)
+      ch.DeleteFile()
+    }
   }
 
   tx, err := s.db.Begin()
@@ -322,6 +355,7 @@ func (s *Database) insertChat(chnl *Channel, chat *Chat) {
     log.Println("Error: could not access DB.", err);
     return
   }
+  
   stmt, err := tx.Prepare(`
   INSERT INTO Chats(
     ip, name, trip, country, message, count, chat_date, 
@@ -341,7 +375,7 @@ func (s *Database) insertChat(chnl *Channel, chat *Chat) {
   stmt, err = tx.Prepare(`SELECT file_path FROM Chats 
                           WHERE chat_date NOT IN ( 
                             SELECT chat_date FROM Chats WHERE convo = ? AND channel = ? ORDER BY chat_date DESC LIMIT ? ) 
-                          AND channel = ? AND convo = ?`)
+                          AND channel = ? AND convo = ? AND file_path != ''`)
   if err != nil {
     log.Println("cannot prepare file_path SELECT query for chat roll over", err)
     return
@@ -352,9 +386,7 @@ func (s *Database) insertChat(chnl *Channel, chat *Chat) {
   for rows.Next() {
     var delchat Chat
     rows.Scan(&delchat.FilePath)
-    if len(delchat.FilePath) > 0 {
-      delchat.DeleteFile()
-    }
+    delchat.DeleteFile()
   }
   
   stmt, err = tx.Prepare(`UPDATE Chats SET file_path = '' WHERE chat_date NOT IN ( 
@@ -457,12 +489,12 @@ func (s *Database) getConvos(channelName string) []string{
   stmt, err := s.db.Prepare(`
   SELECT convos.name, MAX(chats.chat_date)
   FROM convos
-    left join chats ON chats.convo = convos.id
+    LEFT JOIN chats ON chats.convo = convos.id
   WHERE convos.channel = (
     SELECT id FROM channels WHERE name = ?
   )
   GROUP BY convos.name
-  ORDER BY chats.chat_date DESC LIMIT 20`)
+  ORDER BY chats.chat_date DESC`)
   if err != nil {
     log.Println("Couldn't get convos.", err)
     return outputConvos
