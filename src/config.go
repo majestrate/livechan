@@ -6,6 +6,7 @@ package main
 import (
   "github.com/majestrate/configparser"
   "log"
+  "strconv"
   "strings"
 )
 
@@ -41,6 +42,15 @@ func (self LivechanConfig) BanTor() bool {
 func (self LivechanConfig) Has(key string) bool {
   _, ok := self[key]
   return ok 
+}
+
+func (self LivechanConfig) GetInt(key string, fallback int64) int64 {
+  val := self[key]
+  intval, err := strconv.ParseInt(val, 10, 64)
+  if err == nil {
+    return intval
+  }
+  return fallback
 }
 
 func (self LivechanConfig) Validate() {

@@ -497,13 +497,14 @@ func (s *Database) getConvos(channelName string) []string{
     SELECT id FROM channels WHERE name = ?
   )
   GROUP BY convos.name
-  ORDER BY chats.chat_date DESC`)
+  ORDER BY chats.chat_date DESC LIMIT ?`)
   if err != nil {
     log.Println("Couldn't get convos.", err)
     return outputConvos
   }
   defer stmt.Close()
-  rows, err := stmt.Query(channelName)
+  convo_limit := cfg.GetInt("convo_limit", 10)
+  rows, err := stmt.Query(channelName, convo_limit)
   if err != nil {
     log.Println("Couldn't get convos.", err)
     return outputConvos
