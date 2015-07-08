@@ -31,11 +31,11 @@ LivechanNotify.prototype.inform = function(str) {
   */
 }
 
-LivechanNotify.protoype.onLivechanNotify = function(str) {
+LivechanNotify.prototype.onLivechanNotify = function(str) {
   this.inform(str);
 }
 
-LivechanNotify.protoype.onLivechanEvent = function(str) {
+LivechanNotify.prototype.onLivechanEvent = function(str) {
   this.inform(str);
 }
 
