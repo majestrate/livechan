@@ -674,7 +674,6 @@ Chat.prototype.initOutput = function() {
 
       if ( data.Event ) {
         self.chatElems.navbar.onLivechanEvent(data.Event);
-        self.chatElems.notify.onLivechanEvent(data.Event);
       }
       
       if ( data.Notify ) {
@@ -682,7 +681,6 @@ Chat.prototype.initOutput = function() {
           self.login();
         }
         self.chatElems.navbar.onLivechanNotify(data.Notify);
-        self.chatElems.notify.onLivechanNotify(data.Notify);
       } else {
         // user join / part
         if ( data.UserCount > 0 ) {
