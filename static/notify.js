@@ -35,6 +35,10 @@ LivechanNotify.protoype.onLivechanNotify = function(str) {
   this.inform(str);
 }
 
+LivechanNotify.protoype.onLivechanEvent = function(str) {
+  this.inform(str);
+}
+
 
 /* @brief roll over old messages */
 LivechanNotify.prototype.rollover = function() {
