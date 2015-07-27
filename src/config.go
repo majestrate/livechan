@@ -44,11 +44,23 @@ func (self LivechanConfig) Has(key string) bool {
   return ok 
 }
 
+
+
 func (self LivechanConfig) GetInt(key string, fallback int64) int64 {
-  val := self[key]
-  intval, err := strconv.ParseInt(val, 10, 64)
-  if err == nil {
-    return intval
+  val, ok := self[key]
+  if ok {
+    intval, err := strconv.ParseInt(val, 10, 64)
+    if err == nil {
+      return intval
+    }
+  }
+  return fallback
+}
+
+func (self LivechanConfig) Get(key, fallback string) string{
+  val, ok := self[key]
+  if ok {
+    return val
   }
   return fallback
 }
@@ -63,4 +75,36 @@ func (self LivechanConfig) Validate() {
 }
 
 
-var cfg = LoadConfig("livechan.ini")
+type ChannelConfig map[string]string
+
+
+func LoadChannelConfig(fname string) ChannelConfig {
+  cfg := make(ChannelConfig)
+  config, err := configparser.Read(fname)
+  if err != nil {
+    log.Fatal(err)
+  }
+  section, err := config.Section("channel")
+  if err != nil {
+    log.Fatal(err)
+  }
+  for k := range(section.Options()) {
+    cfg[k] = section.ValueOf(k)
+  }
+  return cfg
+}
+
+
+func (self ChannelConfig) Has(key string) bool {
+  _, ok := self[key]
+  return ok 
+}
+
+func (self ChannelConfig) GetInt(key string, fallback int64) int64 {
+  val := self[key]
+  intval, err := strconv.ParseInt(val, 10, 64)
+  if err == nil {
+    return intval
+  }
+  return fallback
+}

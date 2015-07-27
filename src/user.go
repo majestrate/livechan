@@ -15,9 +15,7 @@ var USER_PROP_LEVEL = string("modLevel")
 /* Registered users can moderate, own channels, etc. */
 type User struct {
   Name string
-  //Password string
   Created time.Time
-  //Identifiers string // JSON
   Attributes map[string]string
 
   // user's current ip address
@@ -26,8 +24,13 @@ type User struct {
   SolvedCaptcha bool
 }
 
-func CreateUser() *User {
-  return &User{Attributes: make(map[string]string)}
+func CreateUser(addr string) *User {
+  return &User{
+    Attributes: make(map[string]string),
+    Name: "anon",
+    Created: timeNow(),
+    IpAddr: addr,
+  }
 }
 
 func init() {

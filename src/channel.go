@@ -1,9 +1,7 @@
 package main
 
 import (
-  "bytes"
   "time"
-  "strconv"
   "log"
 )
 
@@ -30,91 +28,83 @@ type Owner struct {
   Permissions uint64
 }
 
-type Channel struct {
-  // connections for this channel
-  Connections map[*Connection]time.Time
-  // scrollback limit per convo
-  Scrollback uint64
-  // limit on active convos
-  ConvoLimit uint64
-  Name string
-  // chan for recving incoming chats to send to this channel
-  Send chan Chat
+type Channel interface {
+  Name() string
+  // channel for others to send chat to us
+  Chan() chan ChannelChat
+  // register a connection with this channel and announce join
+  Join(conn Connection)
+  // deregister a connection with this channel and announce part
+  Part(conn Connection)
+  // check if a connection can post right now
+  CanPost(conn Connection) bool
+  // run the channel mainloop
+  Run()
+  // end the channel's existence
+  // clean up anything
+  End()
 }
 
-func NewChannel(name string) *Channel {
-  chnl := new(Channel)
-  chnl.Name = name
-  chnl.Send = make(chan Chat, 20)
-  var fallbackScrollback, fallbackConvoLimit uint64
-  fallbackScrollback = 50
-  fallbackConvoLimit = 5
-  // if we have set a scrollback amount in our config set it here
-  if cfg.Has("scrollback") {
-    var err error
-    chnl.Scrollback, err = strconv.ParseUint(cfg["scrollback"], 10, 64)
-    if err != nil {
-      chnl.Scrollback = fallbackScrollback
-    }
-  } else {
-    chnl.Scrollback = fallbackScrollback
-  }
-  if cfg.Has("convo_limit") {
-    var err error
-    chnl.ConvoLimit, err = strconv.ParseUint(cfg["convo_limit"], 10, 64)
-    if err != nil {
-      chnl.ConvoLimit = fallbackConvoLimit
-    }
-  } else {
-    chnl.ConvoLimit = fallbackConvoLimit
-  }
-  chnl.Connections = make(map[*Connection]time.Time)
-  return chnl
+type liveChannel struct {
+  // connection -> cooldown
+  connections map[Connection]time.Time
+  name string
+  // chan for recving incoming chats to send to this channel
+  chnlChatChnl chan ChannelChat
+  // configuration for this channel
+  config ChannelConfig
+}
+
+// get our channel
+func (self liveChannel) Chan() chan ChannelChat {
+  return self.chnlChatChnl
 }
 
 // broadcast an OutChat to everyone
-func (self *Channel) BroadcastOutChat(chat *OutChat) {
-  var buff bytes.Buffer
-  chat.createJSON(&buff)
-  data := buff.Bytes()
-  for con := range self.Connections {
-    con.send <- data
+func (self liveChannel) broadcastOutChat(chat OutChat) {
+  for con := range self.connections {
+    con.Chan() <- chat
   }
-  buff.Reset()
+}
+
+func (self liveChannel) End() {
+  // part everyone from the channel
+  for conn, _ := range(self.connections) {
+    self.Part(conn)
+  }
+  // close the chan for channel chat
+  close(self.chnlChatChnl)
 }
 
 // run channel mainloop
-func (self *Channel) Run() {
+func (self liveChannel) Run() {
+  chnl := self.Chan()
   for {
 
     // we got a chat!
     select {
-    case chat := <- self.Send:
-      // register the chat with the channel
-      // sets post number etc
-      self.RegisterWithChannel(&chat)
-      // broadcast it
-      var ch = chat.toOutChat()
-      self.BroadcastOutChat(&ch)
+    case chnlchat := <- self.chnlChatChnl:
+      // can we post?
+      if self.CanPost(chnlchat.conn) {
+        // yas
+        // register the chat
+        self.posted(chnlchat)
+        // broadcast it
+        c := chnlchat.chat
+        ch := c.toOutChat()
+        self.broadcastOutChat(ch)
+      }
     }
   }
 }
 
-// register this post as being in this channel
-// sets post number
-// saves the post
-func (self *Channel) RegisterWithChannel(chat *Chat) {
-  chat.Count = storage.getCount(self.Name) + 1
-  storage.insertChat(self, chat)
-}
-
 // return true if this connection is allowed to post
 // checks for rate limits
-func (self *Channel) ConnectionCanPost(con *Connection) bool {
+func (self liveChannel) CanPost(con Connection) bool {
   // get last post time
-  t := self.Connections[con]
+  t := self.connections[con]
   // are we good with cooldown?
-  if uint64(time.Now().Sub(t).Seconds()) < self.GetCooldown() {
+  if int64(time.Now().Sub(t).Seconds()) < self.getCooldown() {
     // nope
     return false
   }
@@ -125,52 +115,51 @@ func (self *Channel) ConnectionCanPost(con *Connection) bool {
 }
 
 // get post cooldown time
-func (self *Channel) GetCooldown() uint64 {
-  var cooldown uint64
-  cooldown = 4
+func (self liveChannel) getCooldown() int64 {
   // TODO: use channel specific settings
-  if cfg.Has("cooldown") {
-    _cooldown, err := strconv.ParseUint(cfg["cooldown"], 10, 64)
-    if err == nil {
-      cooldown = _cooldown
-    }
-  }
-  return cooldown
+  return self.config.GetInt("cooldown", 4)
 }
 
-func (self *Channel) RemoveConnection(conn *Connection) {
-  if _, ok := self.Connections[conn]; ok {
+func (self liveChannel) removeConnection(conn Connection) {
+  if _, ok := self.connections[conn]; ok {
     // remove them from the list of connections
-    delete(self.Connections, conn)
+    delete(self.connections, conn)
   }
 }
 
-func (self *Channel) Part(conn *Connection) {
+func (self liveChannel) Part(conn Connection) {
   // remove our connection from the list
-  self.RemoveConnection(conn)
+  self.removeConnection(conn)
   // anounce user part    
   var chat OutChat
-  chat.UserCount = len(self.Connections)
-  self.BroadcastOutChat(&chat)
+  chat.UserCount = len(self.connections)
+  self.broadcastOutChat(chat)
+  // close the connection for them
+  conn.Close()
 }
 
-func (self *Channel) Join(conn *Connection) {
+func (self liveChannel) Join(conn Connection) {
   // connection joined, add it to the list
-  self.Connections[conn] = time.Now()
+  self.connections[conn] = time.Now()
   // anounce new user join
   var chat OutChat
-  chat.UserCount = len(self.Connections)
-  self.BroadcastOutChat(&chat)
+  chat.UserCount = len(self.connections)
+  self.broadcastOutChat(chat)
 }
 
 // record that a post was made
-func (self *Channel) ConnectionPosted(conn *Connection) {
+func (self liveChannel) posted(chnlChat ChannelChat) {
   // record post event
   now := time.Now()
+  conn := chnlChat.conn
   // if this user needs to follow the cooldown rules do the cooldown
-  if conn.user.RequireCooldown() {
-    self.Connections[conn] = now
+  if conn.RequireCooldown() {
+    self.connections[conn] = now
   }
   // log it
-  log.Println(conn.ipAddr, "posted at", now.Unix())
+  log.Println(conn.Addr(), "posted at", now.Unix())
+}
+
+func (self liveChannel) Name() string {
+  return self.name
 }

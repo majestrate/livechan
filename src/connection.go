@@ -4,7 +4,7 @@ import (
   "bytes"
   "github.com/gorilla/websocket"
   "log"
-  //"strings"
+  "net"
   "time"
 )
 
@@ -15,59 +15,143 @@ const (
   maxMessageSize = 1024 * 1024     // Maximum size of a message.
 )
 
-/* A Connection will maintain all data pertinent to an active
-   websocket connection. */
-type Connection struct {
+
+// Connection is used to control 1 websocket connection
+type Connection interface {
+  // our user
+  User() *User
+  // chan others use to send a chat to us
+  Chan() chan OutChat
+  //return true if we require this connection to obey cooldown rules
+  RequireCooldown() bool
+  // get our ip address
+  Addr() net.Addr
+  // close this connection
+  Close()
+  // run mainloop
+  Run()
+  // mark this connection as solved the captcha
+  MarkSolvedCaptcha()
+  // see if we solved the captcha
+  SolvedCaptcha() bool
+}
+
+// implemenation of Connection
+type liveConnection struct {
+  // underlying websocket
   ws *websocket.Conn
-  send chan []byte
-  channelName string
-  ipAddr string
-  user *User // user info
+  // for chat processing
+  chatio ChatIO
+  // our user
+  user *User
+  // chan for sending out chat to websocket
+  sendChnl chan OutChat
+  // chan for recving in chat from websocket
+  inchatChnl chan InChat
+  // the chan for the channel we are subscribed to
+  chnlChnl chan ChannelChat
 }
 
-// explicit close
-func (c *Connection) Close() {
-  log.Println(c.ipAddr, "close connection")
-  h.unregister <- c
-  c.ws.Close()
+func (self liveConnection) SolvedCaptcha() bool {
+  return self.user.SolvedCaptcha
 }
 
-/* @brief Read until there is an error. */
-func (c *Connection) reader() {
-  c.ws.SetReadLimit(maxMessageSize)
-  c.ws.SetReadDeadline(time.Now().Add(pongWait))
-  c.ws.SetPongHandler(func(string) error {
-    c.ws.SetReadDeadline(time.Now().Add(pongWait))
+func (self liveConnection) MarkSolvedCaptcha() {
+  self.user.MarkSolvedCaptcha()
+}
+
+func (self liveConnection) User() *User {
+  return self.user
+}
+
+func (self liveConnection) RequireCooldown() bool {
+  return self.user.RequireCooldown()
+}
+
+func (self liveConnection) Chan() chan OutChat {
+  return self.sendChnl
+}
+
+func (self liveConnection) Close() {
+  self.ws.Close()
+  close(self.sendChnl)
+  close(self.inchatChnl)
+}
+
+// run connection mainloop
+func (self liveConnection) Run() {
+  // set up websocket parameters
+  self.ws.SetReadLimit(maxMessageSize)
+  self.ws.SetReadDeadline(time.Now().Add(pongWait))
+  self.ws.SetPongHandler(func(string) error {
+    self.ws.SetReadDeadline(time.Now().Add(pongWait))
     return nil
   })
+
+  go self.poll()
+  // new time ticker for pings
+  ticker := time.NewTicker(pingPeriod)
+  
   for {
-    _, d, err := c.ws.ReadMessage()
+    select {
+    case <-ticker.C:
+      if err := self.write(websocket.PingMessage, []byte{}); err != nil {
+        log.Println("failed ping", self.Addr())
+        return
+      }
+
+    case outchat, ok := <- self.sendChnl:
+      // we got an outchat
+      // turn it into bytes
+      if ok {
+        var buff bytes.Buffer
+        err := self.chatio.WriteChat(outchat, &buff)
+        if err == nil {
+          // send it
+          if err = self.write(websocket.TextMessage, buff.Bytes()); err != nil {
+            log.Println("did not write to websocket", err)
+            return
+          }
+        } else {
+          log.Println("cannot serialize to outchat", err)
+        }
+      } else {
+        // not okay channel closed?
+        return
+      }
+    case inchat, ok := <- self.inchatChnl:
+      if ok {
+        // send it to the channel
+        ch := self.chatio.ToChat(inchat)
+        self.chnlChnl <- ChannelChat{ch, self}
+      } else {
+        // not okay channel closed?
+        return
+      }
+    }
+  }
+}
+
+func (self liveConnection) Addr() net.Addr {
+  return self.ws.RemoteAddr()
+}
+
+// poll for messages
+func (self liveConnection) poll() {
+  for {
+    // read a message
+    _, r, err := self.ws.NextReader()
     if err != nil {
-      break
+      log.Println("websocket read error", err)
+      self.Close()
+      return
     }
-    addr := c.user.IpAddr
-    // check for global ban
-    if storage.isGlobalBanned(addr) {
-      // tell them they are banned
-      var chat OutChat
-      chat.Notify = "Your address (" + addr + ") has been banned globally from Livechan: "
-      chat.Notify += storage.getGlobalBanReason(addr)
-        // send them the ban notice
-      var buff bytes.Buffer
-      chat.createJSON(&buff)
-      c.send <- buff.Bytes()
-    } else if c.user.SolvedCaptcha {
-      go createChat(d, c)
+    inchat, err := self.chatio.ReadChat(r)
+    if err == nil {
+      self.inchatChnl <- inchat
     } else {
-      log.Println(c.user.IpAddr, "needs to solve captcha")
-      // nah, send captcha challenge
-      var chat OutChat
-      chat.Notify = "Please fill in the captcha"
-      var buff bytes.Buffer
-      chat.createJSON(&buff)
-      c.send <- buff.Bytes()
+      log.Println("invalid inchat from", self.Addr())
     }
-    
   }
 }
 
@@ -76,28 +160,7 @@ func (c *Connection) reader() {
  * @param mt The type of message.
  * @param payload The message.
  */
-func (c *Connection) write(mt int, payload []byte) error {
-  c.ws.SetWriteDeadline(time.Now().Add(writeWait))
-  return c.ws.WriteMessage(mt, payload)
-}
-
-/* @brief Write a message if there is one, otherwise ping the client. */
-func (c *Connection) writer() {
-  ticker := time.NewTicker(pingPeriod)
-  for {
-    select {
-    case m, ok := <-c.send:
-      if !ok {
-        c.write(websocket.CloseMessage, []byte{})
-        return
-      }
-      if err := c.write(websocket.TextMessage, m); err != nil {
-        return
-      }
-    case <-ticker.C:
-      if err := c.write(websocket.PingMessage, []byte{}); err != nil {
-        return
-      }
-    }
-  }
+func (self liveConnection) write(mt int, payload []byte) error {
+  self.ws.SetWriteDeadline(time.Now().Add(writeWait))
+  return self.ws.WriteMessage(mt, payload)
 }

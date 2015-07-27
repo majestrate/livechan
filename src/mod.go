@@ -32,7 +32,7 @@ const (
 func ActionString(action int) string {
   switch action {
   case ACTION_NIL:
-    return "nil"
+    return "nil action"
   case ACTION_DELETE_FILE:
     return "Remove File of Post"
   case ACTION_DELETE_POST:
@@ -49,7 +49,7 @@ func ActionString(action int) string {
 func ScopeString(scope int) string {
   switch scope {
   case SCOPE_NIL:
-    return "Null"
+    return "nil scope"
   case SCOPE_POST:
     return "Local"
   case SCOPE_CHANNEL:

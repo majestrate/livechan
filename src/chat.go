@@ -2,15 +2,11 @@ package main
 
 import (
   "encoding/json"
-  "encoding/base64"
   "path/filepath"
   "time"
   "io"
-  "strings"
   "os"
   "log"
-  "bytes"
-  "fmt"
 )
 
 // incoming chat request
@@ -20,6 +16,7 @@ type InChat struct {
   Message string
   File string
   FileName string
+  Channel string
   ModLogin string // user:password
   ModScope int // moderation request scope
   ModAction int // moderation request action
@@ -44,6 +41,12 @@ type Chat struct {
   FileDimensions string
   Convo string
   UserID string
+}
+
+// chat to be sent to channels
+type ChannelChat struct {
+  chat Chat
+  conn Connection
 }
 
 /* To be visible to users. */
@@ -83,29 +86,28 @@ type OutChat struct {
   Event string
 }
 
-// parse incoming data into Chat
-// send chat down channel
-func createChat(data []byte, conn *Connection) {
-  var inchat InChat
-  var buff bytes.Buffer
-  // un marshal json
-  err := json.Unmarshal(data, &inchat)
-  if err != nil {
-    log.Println("error creating chat: ", err)
-    return 
-  }
-  
-  if inchat.Empty() {
-    log.Println("empty post, dropping")
-    return 
-  }
+type ChatProcessor interface {
+  ToChat(inchat InChat) Chat
+  ToOutChat(chat Chat) OutChat
+}
 
-  var c Chat
-  var oc OutChat
+type ChatReader interface {
+  ReadChat(r io.Reader) (InChat, error)
+}
 
-  // trim message and set
-  c.Message = strings.TrimSpace(inchat.Message)
-  
+type ChatWriter interface {
+  WriteChat(outchat OutChat, wr io.Writer) error
+}
+
+type ChatIO interface {
+  ChatProcessor
+  ChatReader
+  ChatWriter
+}
+
+// marshall to Chat
+/*
+func (inchat InChat) ToChat() Chat {
   // attempt a mod login
   if len(inchat.ModLogin) > 0 {
     var username, password string
@@ -186,15 +188,10 @@ func createChat(data []byte, conn *Connection) {
 
   // send any immediate notifications
   if len(oc.Notify) > 0 {
-    oc.createJSON(&buff)
-    conn.send <- buff.Bytes()
-  }
-  if ! c.Empty() {
-    // send the chat if it wasn't a mod login
-    h.broadcast <- Message{chat: c, conn: conn}
+    return oc
   }
 }
-
+*/
 
 // delete files associated with this chat if they exists
 func (chat *Chat) DeleteFile() {
@@ -239,7 +236,7 @@ func (self *Chat) Empty() bool {
 
 // create a json array of outchats for an array of chats for a given connection
 // write result to a writer
-func createJSONs(chats []Chat, out chan []byte) {
+func createJSONs(chats []Chat, wr io.Writer) {
   var outChats []OutChat
   for _, chat := range chats {
     outChat := chat.toOutChat()
@@ -249,7 +246,7 @@ func createJSONs(chats []Chat, out chan []byte) {
   if err != nil {
     log.Println("error marshalling json: ", err)
   }
-  out <- data
+  wr.Write(data)
 }
 
 // for sorting chat by date

@@ -1,51 +1,31 @@
 package main
 
 import (
-  "net/http"
   "github.com/dchest/captcha"
   "github.com/gographics/imagick/imagick"
+  "github.com/gorilla/mux"
   "log"
-  //_ "net/http/pprof"
+  "net/http"
 )
 
 func main() {
 
-  cfg.Validate()
+  // make livechan daemon
+  daemon := makeDaemon()
+
+  r := mux.NewRouter()
   
-  db_type := cfg["db_type"]
-  db_url := cfg["db_url"]
+  // set up daemon handlers
+  r.Path("/options").HandlerFunc(daemon.OptionsServer)
+  r.Path("/channels").HandlerFunc(daemon.ChannelServer)
+  r.Path("/convos/{convo}").HandlerFunc(daemon.ConvoServer)
+  r.Path("/ws/{channel}").HandlerFunc(daemon.WsServer)
   
-  // make database
-  db  := initDB(db_type, db_url)
-  // set storage
-  storage = &Database{db:db}
+  r.Path("/{f}").HandlerFunc(daemon.HtmlServer)
+  r.Path("/static/{f}").HandlerFunc(daemon.StaticServer)
+  r.Path("/captcha.json").HandlerFunc(daemon.CaptchaServer)
+  r.Path("/captcha/{f}").Handler(captcha.Server(captcha.StdWidth, captcha.StdHeight))
 
-  // ensure tor exits are banned
-  if cfg.BanTor() {
-    BanTor()
-  }
-
-  // run hub
-  // TODO: shouldn't hub be made in this method?
-  go h.run()
-  
-  // set up http server handlers
-  http.HandleFunc("/options", optionsServer)
-  http.HandleFunc("/channels", channelServer)
-  http.HandleFunc("/convos/", convoServer)
-  http.HandleFunc("/", htmlServer)
-  http.HandleFunc("/ws/", wsServer)
-  http.HandleFunc("/static/", staticServer)
-  http.HandleFunc("/captcha.json", captchaServer)
-  http.Handle("/captcha/", captcha.Server(captcha.StdWidth, captcha.StdHeight))
-
-
-  // ensure that initial channels are there
-  storage.ensureChannel("General")
-
-  storage.EnsureAdminCreds(cfg["admin_creds"])
-
-  
   // initialize imagick for thumbnails
   log.Println("initialize imagick")
   imagick.Initialize()
@@ -53,7 +33,7 @@ func main() {
   
   // start server
   log.Println("livechan going up")
-  err := http.ListenAndServe(cfg["bind"], nil)
+  err := http.ListenAndServe(daemon.GetConfig("bind"), r)
   if err != nil {
     log.Fatal("Unable to serve: ", err)
   }
