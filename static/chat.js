@@ -451,7 +451,7 @@ ConvoBar.prototype.show = function(convo) {
  * @param options Channel Specific options
  */
 function Chat(domElem, channel, options) {
-  this.name = channel;
+  this.name = channel.toLowerCase();
   this.domElem = domElem;
   if (options) {
     this.options = options;
