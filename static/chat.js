@@ -818,14 +818,14 @@ Chat.prototype.generateChat = function(data) {
       var i = document.createElement("img");
       i.src = src_url;
       var e = document.createElement("span");
-      e.setAttribute("id", "hover_"+count);
+      e.setAttribute("id", "hover_"+data.Count);
       e.setAttribute("class", "hover");
       e.appendChild(i);
       chat.appendChild(e);
     });
     img.addEventListener('mouseout', function () {
       // unload image
-      var e = document.getElementById("hover_"+count);
+      var e = document.getElementById("hover_"+data.Count);
       e.parentElement.removeChild(e);
     });
   }
