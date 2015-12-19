@@ -109,6 +109,10 @@ input, textarea, select {
     opacity: 0.9;
 }
 
+.livechan_captcha_inner {
+    padding: 50%;
+}
+
 .livechan_captcha_image {
 }
 
