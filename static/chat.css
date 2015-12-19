@@ -106,7 +106,7 @@ input, textarea, select {
     bottom: 0px;
     right: 0px;
     position: absolute;
-    opacity: 0.7;
+    opacity: 0.9;
 }
 
 .livechan_captcha_image {

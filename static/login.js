@@ -3,7 +3,11 @@
 function buildCaptcha(domElem, prefix) {
   var captcha_widget = document.createElement("div");
   
-  captcha_widget.className = "livechan_captcha";
+  captcha_widget.className = "livechan_captcha_inner";
+
+  var outer = document.createElement("div");
+
+  outer.className = "livechan_captcha";
   
   var text = document.createElement("div");
   text.textContent = "solve the captcha";
@@ -27,8 +31,9 @@ function buildCaptcha(domElem, prefix) {
   var div = document.createElement("div");
   div.appendChild(captcha_submit);
   captcha_widget.appendChild(div);
-  
-  domElem.appendChild(captcha_widget);
+
+  outer.appendChild(captcha_widget);
+  domElem.appendChild(outer);
   
   return {
     widget: captcha_widget,
