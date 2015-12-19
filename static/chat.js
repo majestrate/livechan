@@ -817,7 +817,7 @@ Chat.prototype.generateChat = function(data) {
       // load image
       var i = document.createElement("img");
       i.src = src_url;
-      var e = document.createElement("span");
+      var e = document.createElement("div");
       e.setAttribute("id", "hover_"+data.Count);
       e.setAttribute("class", "hover");
       e.appendChild(i);
