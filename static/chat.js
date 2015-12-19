@@ -812,6 +812,20 @@ Chat.prototype.generateChat = function(data) {
     a.appendChild(img);
     message.appendChild(a);
     img.onload = function() { self.scroll(); }
+    
+    img.addEventListener('mouseover', function () {
+      // load image
+      var i = document.createElement("img");
+      i.src = src_url;
+      var e = document.createElement("span");
+      e.setAttribute("id", "hover_"+count);
+      chat.appendChild(e);
+    });
+    img.addEventListener('mouseout', function () {
+      // unload image
+      var e = document.getElementById("hover_"+count);
+      e.parentElement.removeChild(e);
+    });
   }
     
   if (data.Capcode) {
