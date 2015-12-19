@@ -158,6 +158,6 @@ input, textarea, select {
     z-index: 100;
     position: absolute;
     left: 10%;
-    max-width: 500px;
-    max-height: 500px;
+    max-width: 90%;
+    max-height: 90%;
 }
