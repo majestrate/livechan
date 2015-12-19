@@ -468,7 +468,7 @@ function Chat(domElem, channel, options) {
   this.chatElems.navbar.setChannel(this.name);
   // create captcha 
   this.captcha = new Captcha(this.domElem, this.options);
-  this.captcha.login();
+  this.login();
 }
 
 /**
