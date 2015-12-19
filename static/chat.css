@@ -110,7 +110,7 @@ input, textarea, select {
 }
 
 .livechan_captcha_inner {
-    padding: 50%;
+    padding: 200px;
 }
 
 .livechan_captcha_image {
