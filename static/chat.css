@@ -157,5 +157,5 @@ input, textarea, select {
 .hover {
     z-index: 100;
     position: absolute;
-    left: 50%;
+    left: 10%;
 }
