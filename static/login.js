@@ -101,7 +101,7 @@ Captcha.prototype.process = function() {
     var xhr = new XMLHttpRequest();
     var self = this;
     // TODO: https detection
-    var url = "http://" + location.host + this.prefix + "captcha.json";
+    var url = "https://" + location.host + this.prefix + "captcha.json";
     xhr.open('post', url, true);
     xhr.onreadystatechange = function() {
       if (xhr.readyState == 4 && xhr.status == 200 ) {
