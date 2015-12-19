@@ -20,12 +20,15 @@ function LivechanNotify(domElem) {
 
 /* @brief inform the user with a message */
 LivechanNotify.prototype.inform = function(str) {
+  new Notify("livechan", {body: str}).show();
+  /*
   //XXX: implement
   var elem = document.createElement("div");
   elem.className = "livechan_notify_node";
   elem.textContent = Date.now() + ": " + str;
   this.pane.appendChild(elem);
   this.rollover();
+  */
 }
 
 

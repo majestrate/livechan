@@ -302,7 +302,7 @@ ConvoBar.prototype.update = function(convo, chat) {
     var child_data = self.convoPosts[convo].shift();
     var child = document.getElementById("livechan_chat_"+child_data.Count);
     // remove element from main chat element
-    self.parent.chatElems.output.removeChild(child);
+    self.parent.chatElems.output.removeChild(child.parentNode.parentElement);
   }
   
 }
@@ -328,8 +328,7 @@ ConvoBar.prototype.registerConvo = function(convo) {
   var elem = document.createElement("div");
   elem.className = "livechan_convobar_item";
   elem.setAttribute("id", "livechan_convobar_item_"+ self.holder[convo]);
-  var link = document.createElement("a");
-  link.setAttribute("href", "#");
+  var link = document.createElement("span");
   link.addEventListener("click", function() { self.show(convo); });
   link.appendChild(document.createTextNode(convo));
   elem.appendChild(link);
@@ -675,7 +674,6 @@ Chat.prototype.initOutput = function() {
 
       if ( data.Event ) {
         self.chatElems.navbar.onLivechanEvent(data.Event);
-        self.chatElems.notify.onLivechanEvent(data.Event);
       }
       
       if ( data.Notify ) {
@@ -683,7 +681,6 @@ Chat.prototype.initOutput = function() {
           self.login();
         }
         self.chatElems.navbar.onLivechanNotify(data.Notify);
-        self.chatElems.notify.onLivechanNotify(data.Notify);
       } else {
         // user join / part
         if ( data.UserCount > 0 ) {
