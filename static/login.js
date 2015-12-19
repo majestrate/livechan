@@ -36,7 +36,7 @@ function buildCaptcha(domElem, prefix) {
   domElem.appendChild(outer);
   
   return {
-    widget: captcha_widget,
+    widget: outer,
     button: captcha_submit,
     image: captcha_image,
     entry: captcha_entry,
