@@ -4,6 +4,7 @@ import (
   "bytes"
   "time"
   "strconv"
+  "strings"
   "log"
 )
 
@@ -44,7 +45,7 @@ type Channel struct {
 
 func NewChannel(name string) *Channel {
   chnl := new(Channel)
-  chnl.Name = name
+  chnl.Name = strings.ToLower(name)
   chnl.Send = make(chan Chat, 20)
   var fallbackScrollback uint64
   fallbackScrollback = 50

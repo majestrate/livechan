@@ -57,7 +57,10 @@ func (c *Connection) reader() {
       chat.createJSON(&buff)
       c.send <- buff.Bytes()
     } else if c.user.SolvedCaptcha {
-      go createChat(d, c)
+      // copy data into local buffer
+      data := make([]byte, len(d))
+      copy(data, d)
+      go createChat(data, c)
     } else {
       log.Println(c.user.IpAddr, "needs to solve captcha")
       // nah, send captcha challenge

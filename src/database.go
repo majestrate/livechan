@@ -6,6 +6,7 @@ import (
   _ "github.com/mattn/go-sqlite3"
   "time"
   "log"
+  "strings"
 )
 
 type Database struct {
@@ -230,6 +231,7 @@ func (s *Database) checkModLogin(username, password string) bool {
 }
 
 func (s *Database) insertChannel(channelName string) {
+  channelName = strings.ToLower(channelName)
   tx, err := s.db.Begin()
   if err != nil {
     log.Println("Error: could not access DB.", err)
@@ -407,6 +409,7 @@ func (s *Database) getChatChannelId(channelName string)int {
 }
 
 func (s *Database) getCount(channelName string) uint64{
+  channelName = strings.ToLower(channelName)
   stmt, err := s.db.Prepare(`
   SELECT MAX(count)
   FROM chats
@@ -447,13 +450,14 @@ func (s *Database) getChannels() []string{
     var channelDate int
     var channelName string
     rows.Scan(&channelName, &channelDate)
-    outputChannels = append(outputChannels, channelName)
+    outputChannels = append(outputChannels, strings.ToLower(channelName))
   }
   return outputChannels
 }
 
 func (s *Database) getConvos(channelName string) []string{
   var outputConvos []string
+  channelName = strings.ToLower(channelName)
   stmt, err := s.db.Prepare(`
   SELECT convos.name, MAX(chats.chat_date)
   FROM convos
@@ -484,6 +488,7 @@ func (s *Database) getConvos(channelName string) []string{
 }
 
 func (s *Database) getChats(channelName string, convoName string, numChats uint64) []Chat {
+  channelName = strings.ToLower(channelName)
   var outputChats []Chat
   if len(convoName) > 0 {
     stmt, err := s.db.Prepare(`
@@ -523,6 +528,7 @@ func (s *Database) getChats(channelName string, convoName string, numChats uint6
 }
 
 func (s *Database) getPermissions(channelName string, userName string) uint64 {
+  channelName = strings.ToLower(channelName)
   stmt, err := s.db.Prepare(`
   SELECT permissions FROM Owners
   WHERE user = (SELECT id FROM users WHERE name = ?)
