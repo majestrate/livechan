@@ -336,7 +336,7 @@ ConvoBar.prototype.registerConvo = function(convo) {
   elem.className = "livechan_convobar_item";
   elem.setAttribute("id", "livechan_convobar_item_"+ self.holder[convo]);
   var link = document.createElement("span");
-  link.addEventListener("click", function() { self.show(convo); });
+  elem.addEventListener("click", function() { self.show(convo); });
   link.appendChild(document.createTextNode(convo));
   elem.appendChild(link);
   // prepend the element
