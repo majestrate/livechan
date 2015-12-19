@@ -819,6 +819,7 @@ Chat.prototype.generateChat = function(data) {
       i.src = src_url;
       var e = document.createElement("span");
       e.setAttribute("id", "hover_"+count);
+      e.appendChild(i);
       chat.appendChild(e);
     });
     img.addEventListener('mouseout', function () {
