@@ -59,7 +59,7 @@ Captcha.prototype.load = function() {
   // TODO: https detection
   var url = "http://" + location.host + this.prefix ;
 
-  xhr.open('get', url +"/captcha.json");
+  xhr.open('get', url +"captcha.json");
   xhr.onreadystatechange = function () {
     if (xhr.readyState == 4 && xhr.status == 200) {
       var jdata = JSON.parse(xhr.responseText);
@@ -78,7 +78,7 @@ Captcha.prototype.load = function() {
 Captcha.prototype.setCaptchaId = function(id) {
   this.captcha_id = id;
   var url = "http://" + location.host + this.prefix;
-  this.setImageUrl(url + "/captcha/" + id + ".png");
+  this.setImageUrl(url + "captcha/" + id + ".png");
 }
 
 Captcha.prototype.setImageUrl = function(url) {

@@ -2,6 +2,7 @@ package main
 
 import (
   "net/http"
+  "github.com/gorilla/mux"
   "github.com/dchest/captcha"
   "github.com/gographics/imagick/imagick"
   "log"
@@ -28,17 +29,22 @@ func main() {
   // run hub
   // TODO: shouldn't hub be made in this method?
   go h.run()
+
+  r := mux.NewRouter()
   
   // set up http server handlers
-  http.HandleFunc("/options", optionsServer)
-  http.HandleFunc("/channels", channelServer)
-  http.HandleFunc("/convos/", convoServer)
-  http.HandleFunc("/", htmlServer)
-  http.HandleFunc("/ws/", wsServer)
-  http.HandleFunc("/static/", staticServer)
-  http.HandleFunc("/captcha.json", captchaServer)
-  http.Handle("/captcha/", captcha.Server(captcha.StdWidth, captcha.StdHeight))
-
+  r.HandleFunc("/captcha.json", captchaServer)
+  r.HandleFunc("/options", optionsServer)
+  r.HandleFunc("/channels", channelServer)
+  r.HandleFunc("/convos/{f}", convoServer)
+  r.HandleFunc("/ws/{f}", wsServer)
+  r.HandleFunc("/static/theme/{f}", staticServer)
+  r.HandleFunc("/static/contrib/{f}", staticServer)
+  r.HandleFunc("/static/{f}", staticServer)
+  r.HandleFunc("/{f}", htmlServer)
+  r.Handle("/captcha/{f}", captcha.Server(captcha.StdWidth, captcha.StdHeight))
+  r.HandleFunc("/{f}", htmlServer)
+  
 
   // ensure that initial channels are there
   storage.ensureChannel("General")
@@ -53,7 +59,7 @@ func main() {
   
   // start server
   log.Println("livechan going up")
-  err := http.ListenAndServe(cfg["bind"], nil)
+  err := http.ListenAndServe(cfg["bind"], r)
   if err != nil {
     log.Fatal("Unable to serve: ", err)
   }
