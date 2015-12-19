@@ -821,7 +821,7 @@ Chat.prototype.generateChat = function(data) {
       e.setAttribute("id", "hover_"+data.Count);
       e.setAttribute("class", "hover");
       e.appendChild(i);
-      chat.insertBefore(e, chat.children[0]);
+      chat.appendChild(e);
     });
     img.addEventListener('mouseout', function () {
       // unload image
