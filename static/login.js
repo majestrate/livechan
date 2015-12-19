@@ -82,7 +82,7 @@ Captcha.prototype.load = function() {
  */
 Captcha.prototype.setCaptchaId = function(id) {
   this.captcha_id = id;
-  var url = "http://" + location.host + this.prefix;
+  var url = "https://" + location.host + this.prefix;
   this.setImageUrl(url + "captcha/" + id + ".png");
 }
 
