@@ -41,8 +41,8 @@ func main() {
   r.HandleFunc("/static/theme/{f}", staticServer)
   r.HandleFunc("/static/contrib/{f}", staticServer)
   r.HandleFunc("/static/{f}", staticServer)
-  r.HandleFunc("/{f}", htmlServer)
-  r.Handle("/captcha/{f}", captcha.Server(captcha.StdWidth, captcha.StdHeight))
+  r.Handle("/captcha/{f}", captcha.Server(captcha.StdWidth, captcha.StdHeight)) 
+  r.HandleFunc("/", htmlServer)
   r.HandleFunc("/{f}", htmlServer)
   
 
