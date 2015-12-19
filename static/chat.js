@@ -14,6 +14,7 @@
  *         created.
  */
 function buildChat(chat, domElem, channel) {
+  channel = channel.toLowerCase();
   // build the navbar
   // see nav.js
   var navbar = new LivechanNavbar(domElem);
