@@ -154,7 +154,7 @@ input, textarea, select {
 }
 
 
-.hover {
+.hover , .hover > img {
     z-index: 100;
     position: absolute;
     left: 10%;
