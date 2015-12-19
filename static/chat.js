@@ -466,9 +466,9 @@ function Chat(domElem, channel, options) {
   this.initInput();
   // set navbar channel name
   this.chatElems.navbar.setChannel(this.name);
-  // create captcha and hide it
+  // create captcha 
   this.captcha = new Captcha(this.domElem, this.options);
-  this.captcha.hide();
+  this.captcha.login();
 }
 
 /**
