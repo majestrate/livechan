@@ -152,3 +152,8 @@ input, textarea, select {
     padding-left: 10px;
     padding-right: 10px;
 }
+
+
+.hover {
+    z-index: 2;
+}
