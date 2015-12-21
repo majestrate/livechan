@@ -242,6 +242,7 @@ var messageRules = [
   [/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/g, function(m) {
     var out = document.createElement("a");
     out.href = m[1];
+    out.target = "_blank";
     out.textContent = m[1];
     return out;
   }],
