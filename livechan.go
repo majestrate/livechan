@@ -1,7 +1,7 @@
 package main
 
 import (
-  "github.com/majestrate/livechan/livechan"
+  "github.com/majestrate/livechan/lib/livechan"
 )
 
 func main() {
