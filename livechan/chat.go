@@ -181,7 +181,7 @@ func createChat(data []byte, conn *Connection) {
       return
     }
     dec = nil
-    decbuff = nil
+    decbuf = nil
   }
 
 
