@@ -1,4 +1,4 @@
-package main
+package livechan
 
 import (
   "encoding/json"
@@ -167,20 +167,21 @@ func createChat(data []byte, conn *Connection) {
     c.FilePath = genUploadFilename(inchat.FileName)
     c.FileName = inchat.FileName
     // decode base64
-    dec := make([]byte, base64.StdEncoding.DecodedLen(len(inchat.File)))
-    base64.StdEncoding.Decode(dec, []byte(inchat.File))
+    decbuf := make([]byte, base64.StdEncoding.DecodedLen(len(inchat.File)))
+    dec := base64.StdEncoding
+    dec.Decode(decbuf, []byte(inchat.File))
     if err == nil {
       log.Println(c.IpAddr, "uploaded file", c.FilePath)
       filepath := c.FilePath
-      handleUpload(filepath, dec)
+      handleUpload(filepath, decbuf)
     } else {
       log.Println("failed to decode upload", err)
       oc.Notify = "failed to decode upload"
       dec = nil
       return
     }
-    
     dec = nil
+    decbuff = nil
   }
 
 

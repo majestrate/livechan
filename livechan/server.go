@@ -1,4 +1,4 @@
-package main
+package livechan
 
 import (
   "net/http"
@@ -9,7 +9,7 @@ import (
   //_ "net/http/pprof"
 )
 
-func main() {
+func Boot() {
 
   cfg.Validate()
   

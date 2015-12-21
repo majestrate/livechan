@@ -1,4 +1,4 @@
-package main
+package livechan
 
 import (
   "github.com/dchest/captcha"

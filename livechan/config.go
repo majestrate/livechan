@@ -1,7 +1,7 @@
 //
 // config reader
 //
-package main
+package livechan
 
 import (
   "github.com/majestrate/configparser"

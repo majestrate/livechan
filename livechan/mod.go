@@ -4,7 +4,7 @@
 // mod events 
 //
 
-package main
+package livechan
 
 import (
   "time"
