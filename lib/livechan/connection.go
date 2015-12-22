@@ -4,6 +4,7 @@ import (
   "bytes"
   "github.com/gorilla/websocket"
   "log"
+  "io"
   //"strings"
   "time"
 )
@@ -40,8 +41,10 @@ func (c *Connection) reader() {
     c.ws.SetReadDeadline(time.Now().Add(pongWait))
     return nil
   })
+  var r io.Reader
+  var err error
   for {
-    _, d, err := c.ws.ReadMessage()
+    _, r, err = c.ws.NextReader()
     if err != nil {
       break
     }
@@ -58,9 +61,9 @@ func (c *Connection) reader() {
       c.send <- buff.Bytes()
     } else if c.user.SolvedCaptcha {
       // copy data into local buffer
-      data := make([]byte, len(d))
-      copy(data, d)
-      go createChat(data, c)
+      var buff bytes.Buffer
+      io.CopyBuffer(&buff, r, nil)
+      createChat(buff.Bytes(), c)
     } else {
       log.Println(c.user.IpAddr, "needs to solve captcha")
       // nah, send captcha challenge
