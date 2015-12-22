@@ -705,12 +705,12 @@ Chat.prototype.initOutput = function() {
   connection.ws = null;
   var getConnection = setInterval(function() {
     console.log("Attempting to reconnect.");
-    self.notify("disconnected");
+    //self.notify("disconnected");
     var prefix = self.options.prefix || "/";
     if (initWebSocket(prefix, connection.channel, connection) !== null
         && connection.ws !== null) {
       console.log("Success!");
-      self.notify("connected to livechan");
+      //self.notify("connected to livechan");
       clearInterval(getConnection);
     }
   }, 1000);
