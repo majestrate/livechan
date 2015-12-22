@@ -144,7 +144,7 @@ function initWebSocket(prefix, channel, connection) {
 /* @brief Parses and returns a message div.
  *
  * @param data The message data to be parsed.
- * @return A dom element containing the message.
+7 * @return A dom element containing the message.
  */
 function parse(text, rules, end_tag) {
   var output = document.createElement('div'); 
@@ -578,18 +578,15 @@ Chat.prototype.sendInput = function(event) {
     self.readImage(inputElem.file, function(file, filename) {
       // check for file too big
       // TODO: make configurable
-      if ( file && file.length > 1024 * 1024 ) {
-        self.notify("file too big");
-      } else {
-        connection.send({
-          convo: convo,
-          message: message,
-          name: name,
-          file: file,
-          filename: filename,
-        });
-        inputElem.file.value = "";
-      }
+
+      connection.send({
+        convo: convo,
+        message: message,
+        name: name,
+        file: file,
+        filename: filename,
+      });
+      inputElem.file.value = "";
     });
     //TODO: don't clear this when doing captcha
     inputElem.message.value = '';
